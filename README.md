@@ -1,6 +1,6 @@
 # drone-pose-estimation
 
-Project for the course *Design Methods for Unmanned Vehicles*
+*Project for the course *Design Methods for Unmanned Vehicles*
 
 Authors:
 @[oselin](https://github.com/oselin),
