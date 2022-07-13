@@ -1,0 +1,47 @@
+[1.120s] Invoking command in '/home/oselin/Documents/drone-pose-estimation/dev_ws/src/py_pubsub': PYTHONPATH=/home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/py_pubsub build --build-base /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build install --prefix /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub --record /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/install.log --single-version-externally-managed
+[1.396s] /usr/local/lib/python3.8/dist-packages/setuptools/dist.py:771: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+[1.396s]   warnings.warn(
+[1.397s] /usr/local/lib/python3.8/dist-packages/setuptools/dist.py:771: UserWarning: Usage of dash-separated 'install-scripts' will not be supported in future versions. Please use the underscore name 'install_scripts' instead
+[1.397s]   warnings.warn(
+[1.484s] running egg_info
+[1.485s] creating ../../build/py_pubsub/py_pubsub.egg-info
+[1.497s] writing ../../build/py_pubsub/py_pubsub.egg-info/PKG-INFO
+[1.498s] writing dependency_links to ../../build/py_pubsub/py_pubsub.egg-info/dependency_links.txt
+[1.498s] writing entry points to ../../build/py_pubsub/py_pubsub.egg-info/entry_points.txt
+[1.499s] writing requirements to ../../build/py_pubsub/py_pubsub.egg-info/requires.txt
+[1.499s] writing top-level names to ../../build/py_pubsub/py_pubsub.egg-info/top_level.txt
+[1.511s] writing manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[1.548s] reading manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[1.550s] writing manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[1.550s] running build
+[1.550s] running build_py
+[1.551s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build
+[1.551s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib
+[1.551s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[1.551s] copying py_pubsub/publisher_member_function.py -> /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[1.551s] copying py_pubsub/subscriber_member_function.py -> /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[1.552s] copying py_pubsub/__init__.py -> /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[1.552s] running install
+[1.552s] /usr/local/lib/python3.8/dist-packages/setuptools/command/install.py:34: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+[1.552s]   warnings.warn(
+[1.558s] running install_lib
+[1.573s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[1.573s] copying /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub/publisher_member_function.py -> /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[1.574s] copying /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub/subscriber_member_function.py -> /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[1.574s] copying /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub/__init__.py -> /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[1.574s] byte-compiling /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub/publisher_member_function.py to publisher_member_function.cpython-38.pyc
+[1.575s] byte-compiling /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub/subscriber_member_function.py to subscriber_member_function.cpython-38.pyc
+[1.575s] byte-compiling /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub/__init__.py to __init__.cpython-38.pyc
+[1.575s] running install_data
+[1.592s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index
+[1.592s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index/resource_index
+[1.593s] creating /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index/resource_index/packages
+[1.593s] copying resource/py_pubsub -> /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index/resource_index/packages
+[1.593s] copying package.xml -> /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/share/py_pubsub
+[1.593s] running install_egg_info
+[1.609s] Copying ../../build/py_pubsub/py_pubsub.egg-info to /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub-0.0.0-py3.8.egg-info
+[1.610s] running install_scripts
+[1.681s] Installing listener script to /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.682s] Installing talker script to /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.682s] writing list of installed files to '/home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/install.log'
+[1.717s] Invoked command in '/home/oselin/Documents/drone-pose-estimation/dev_ws/src/py_pubsub' returned '0': PYTHONPATH=/home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/py_pubsub build --build-base /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/build install --prefix /home/oselin/Documents/drone-pose-estimation/dev_ws/install/py_pubsub --record /home/oselin/Documents/drone-pose-estimation/dev_ws/build/py_pubsub/install.log --single-version-externally-managed
