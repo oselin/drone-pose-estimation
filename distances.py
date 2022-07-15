@@ -2,6 +2,7 @@ from drone_library import *
 import matplotlib.pyplot as plt
 import random
 
+from drone_library.Robot import Robot
 from drone_library.Robot import d_matrix
 
 # get number of robots from user
