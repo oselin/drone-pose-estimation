@@ -10,7 +10,7 @@ class Robot:
 
     #GET-SET METHODS
     def get_coords(self):
-        return [self.r_x,self.r_y]
+        return [[self.r_x],[self.r_y]]
 
     def set_coords(self,x,y):
         if not type(x,str):
