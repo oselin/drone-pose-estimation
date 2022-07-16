@@ -10,6 +10,7 @@ from sklearn.random_projection import johnson_lindenstrauss_min_dim
 from sklearn.random_projection import SparseRandomProjection
 from sklearn.metrics.pairwise import euclidean_distances
 
+from drone_library import *
 
 def main():
     random.seed(0)
@@ -35,6 +36,11 @@ def main():
     pairplot = sns.scatterplot(x = MDS_transformed[:,0],y = MDS_transformed[:,1],markers='o',edgecolor="black")
 
     plt.subplots_adjust(left=0.0, bottom=0.0, right=2., top=1.3, wspace=0.3, hspace=0.2,)
+
+    plt.subplot(121)
+    plt.scatter(MDS_transformed[:,0],MDS_transformed[:,1],color='red')
+    plt.subplot(122)
+    plt.scatter(x_coords , y_coords,color='blue')
     plt.show()
 
 
