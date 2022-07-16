@@ -1,4 +1,5 @@
 import math
+from re import S
 import numpy as np     
 
 class Robot:
@@ -7,32 +8,32 @@ class Robot:
         self.r_x = r_x
         self.r_y = r_y
 
+    #GET-SET METHODS
     def get_coords(self):
+        return [self.r_x,self.r_y]
+
+    def set_coords(self,x,y):
+        if not type(x,str):
+            self.r_x = x
+        if not type(y,str):
+            self.r_y = y
+
+    def get_distance(self,rob):
+        dist = math.sqrt( (self.r_x - rob.r_x)**2 + (self.r_y - rob.r_y)**2)
+        return dist
+
+    def print_coords(self):
         print( str(self.id) + " coords: " + "X = " + str(self.r_x) + " , Y = " + str(self.r_y))
         
-    def get_local_dist(self,platoon):
-        print( str(self.id) + " distances from other robots: ")
-        for i in range(len(platoon)):
-            if self.id != i :
-                print_dist(self,platoon[i])
+
 
 def d_matrix(platoon):
     d_mat = np.zeros((len(platoon),len(platoon)))
     for i in range(len(platoon)):
         for j in range(len(platoon)):
-            d_mat[i,j] = get_dist(platoon[i],platoon[j])
-    print(d_mat)
-
-
-def get_dist(r1,r2):
-    dist = math.sqrt( (r1.r_x - r2.r_x)**2 + (r1.r_y - r2.r_y)**2)
-    return dist
+            d_mat[i,j] = platoon[i].get_distance(platoon[j])
+    return d_mat
     
-    
-def print_dist(r1,r2):
-    d = dist = math.sqrt( (r1.r_x - r2.r_x)**2 + (r1.r_y - r2.r_y)**2)
-    print( str(r1.id) + " - " + str(r2.id) + " : " + str(d) )
-
 
 
 
