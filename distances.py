@@ -11,7 +11,7 @@ from sklearn.random_projection import johnson_lindenstrauss_min_dim
 from sklearn.random_projection import SparseRandomProjection
 from sklearn.metrics.pairwise import euclidean_distances
 
-from drone_library import *
+from UAV import *
 
 
 def main():

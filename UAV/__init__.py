@@ -1,3 +1,3 @@
-from drone_library.Robot import Robot
-from drone_library.Robot import d_matrix
+from UAV.Robot import Robot
+from UAV.Robot import d_matrix
 
