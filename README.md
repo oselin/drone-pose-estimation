@@ -13,7 +13,7 @@ Authors:
 - 
 
 ## Usage
-Library written in Python3. To use it, just type
+Library written in Python3 and ROS2. To use it, just type
 
 ~~~
 from drone_library import PoseEstimator
