@@ -4,29 +4,62 @@ import numpy as np
 
 class Robot:
     def __init__(self,id,r_x,r_y,r_z):
-        self.id = id
-        self.r_x = r_x
-        self.r_y = r_y
-        self.r_z = r_z
+        self.__id = id
+        self.__x = r_x
+        self.__y = r_y
+        self.__z = r_z
+
+
+    @property
+    def id(self):
+        return self.__id
+    @id.setter
+    def x(self,value):
+        if value != "" and type(value,str):
+            self.__id = value
+
+    @property
+    def x(self):
+        return self.__x
+    @x.setter
+    def x(self,value):
+        if type(value,float):
+            self.__x = value
+    
+    @property
+    def y(self):
+        return self.__y
+    @y.setter
+    def y(self,value):
+        if type(value,float):
+            self.__y = value
+
+    @property
+    def z(self):
+        return self.__z
+    @z.setter
+    def z(self,value):
+        if type(value,float):
+            self.__z = value
 
     #GET-SET METHODS
     def get_coords(self):
-        return [[self.r_x],[self.r_y],[self.r_z]]
+        return [[self.__x],[self.__y],[self.__z]]
 
     def set_coords(self,x,y,z):
         if not type(x,str):
-            self.r_x = x
+            self.__x = x
         if not type(y,str):
-            self.r_y = y
+            self.__y = y
         if not type(z,str):
-            self.r_z = z
+            self.__z = z
 
     def get_distance(self,rob):
-        dist = math.sqrt( (self.r_x - rob.r_x)**2 + (self.r_y - rob.r_y)**2 + (self.r_z - rob.r_z)**2)
+        dist = math.sqrt( (self.__x - rob.x)**2 + (self.__y - rob.y)**2 + (self.__z - rob.z)**2)
         return dist
 
     def print_coords(self):
-        print( str(self.id) + " coords: " + "X = " + str(self.r_x) + " , Y = " + str(self.r_y) + " , Z = " + str(self.r_z))
+        print( str(self.__id) + " coords: " + "X = " + str(self.__x) + " , Y = " + str(self.__y) + " , Z = " + str(self.__z))
         
 
 
