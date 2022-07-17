@@ -13,10 +13,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='oselin',
-    maintainer_email='oselin@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='giacomo',
+    maintainer_email='giacomo.mutti@studenti.unitn.it',
+    description='package for a distributed system of rovers sending relative position to an anchor which suns an MDS algorithm to find the platoon configuration',
+    license='Apache License 2.0',
     tests_require=['pytest'],
 entry_points={
         'console_scripts': [

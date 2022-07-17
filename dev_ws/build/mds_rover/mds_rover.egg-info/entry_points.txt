@@ -1,0 +1,3 @@
+[console_scripts]
+rover = mds_rover.rover:main
+
