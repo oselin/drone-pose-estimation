@@ -1,5 +1,3 @@
-import math
-from re import S
 import numpy as np     
 
 class Robot:
@@ -55,7 +53,7 @@ class Robot:
             self.__z = z
 
     def get_distance(self,rob):
-        dist = math.sqrt( (self.__x - rob.x)**2 + (self.__y - rob.y)**2 + (self.__z - rob.z)**2)
+        dist = np.sqrt( (self.__x - rob.x)**2 + (self.__y - rob.y)**2 + (self.__z - rob.z)**2)
         return dist
 
     def print_coords(self):
@@ -70,6 +68,12 @@ def d_matrix(platoon):
             d_mat[i,j] = platoon[i].get_distance(platoon[j])
     return d_mat
     
+def d_matrix2(platoon):
+    d_mat = np.zeros((len(platoon),len(platoon)))
+    for i in range(len(platoon)):
+        for j in range(len(platoon)):
+            d_mat[i,j] = platoon[i].get_distance(platoon[j])**2
+    return d_mat
 
-
-
+def rotateMatrix(theta):
+    return np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
