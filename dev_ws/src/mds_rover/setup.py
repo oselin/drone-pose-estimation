@@ -1,4 +1,5 @@
 from setuptools import setup
+from glob import glob
 
 package_name = 'mds_rover'
 
@@ -10,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/'+ package_name, glob('launch/*.launch.py'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +22,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'rover = mds_rover.rover:main'
-        ],
+            'rover = mds_rover.rover:main',
+            'anchor = mds_rover.anchor:main',
+        ]
     },
 )

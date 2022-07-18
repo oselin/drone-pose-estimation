@@ -1,0 +1,20 @@
+[0.821s] Invoking command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub --editable --build-directory /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/build --no-deps install_data --install-dir /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub
+[1.010s] running develop
+[1.144s] running egg_info
+[1.144s] writing py_pubsub.egg-info/PKG-INFO
+[1.144s] writing dependency_links to py_pubsub.egg-info/dependency_links.txt
+[1.144s] writing entry points to py_pubsub.egg-info/entry_points.txt
+[1.144s] writing requirements to py_pubsub.egg-info/requires.txt
+[1.144s] writing top-level names to py_pubsub.egg-info/top_level.txt
+[1.167s] reading manifest file 'py_pubsub.egg-info/SOURCES.txt'
+[1.168s] writing manifest file 'py_pubsub.egg-info/SOURCES.txt'
+[1.191s] running build_ext
+[1.192s] Creating /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages/site.py
+[1.193s] Creating /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py-pubsub.egg-link (link to .)
+[1.194s] Installing listener script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.194s] Installing rover = mds_rover.rover:mainanchor script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.194s] Installing talker script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.194s] 
+[1.194s] Installed /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub
+[1.194s] running install_data
+[1.224s] Invoked command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub' returned '0': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub --editable --build-directory /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/build --no-deps install_data --install-dir /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub

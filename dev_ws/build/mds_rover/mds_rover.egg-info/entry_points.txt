@@ -1,3 +1,4 @@
 [console_scripts]
+anchor = mds_rover.anchor:main
 rover = mds_rover.rover:main
 

@@ -1,0 +1,19 @@
+running egg_info
+writing ../../build/mds_rover/mds_rover.egg-info/PKG-INFO
+writing dependency_links to ../../build/mds_rover/mds_rover.egg-info/dependency_links.txt
+writing entry points to ../../build/mds_rover/mds_rover.egg-info/entry_points.txt
+writing requirements to ../../build/mds_rover/mds_rover.egg-info/requires.txt
+writing top-level names to ../../build/mds_rover/mds_rover.egg-info/top_level.txt
+reading manifest file '../../build/mds_rover/mds_rover.egg-info/SOURCES.txt'
+writing manifest file '../../build/mds_rover/mds_rover.egg-info/SOURCES.txt'
+running build
+running build_py
+running install
+running install_lib
+running install_data
+running install_egg_info
+removing '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover-0.0.0-py3.8.egg-info' (and everything under it)
+Copying ../../build/mds_rover/mds_rover.egg-info to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover-0.0.0-py3.8.egg-info
+running install_scripts
+Installing rover script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/mds_rover
+writing list of installed files to '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/install.log'

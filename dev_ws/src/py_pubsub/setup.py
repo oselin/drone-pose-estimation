@@ -22,6 +22,8 @@ entry_points={
         'console_scripts': [
                 'talker = py_pubsub.publisher_member_function:main',
                 'listener = py_pubsub.subscriber_member_function:main',
+                'rover = mds_rover.rover:main'
+                'anchor = mds_rover.anchor:main'
         ],
 },
 )

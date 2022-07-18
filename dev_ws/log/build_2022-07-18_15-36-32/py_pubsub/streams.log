@@ -1,0 +1,19 @@
+[0.867s] Invoking command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub --editable --build-directory /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/build --no-deps install_data --install-dir /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub
+[1.049s] running develop
+[1.171s] running egg_info
+[1.172s] writing py_pubsub.egg-info/PKG-INFO
+[1.172s] writing dependency_links to py_pubsub.egg-info/dependency_links.txt
+[1.172s] writing entry points to py_pubsub.egg-info/entry_points.txt
+[1.172s] writing requirements to py_pubsub.egg-info/requires.txt
+[1.172s] writing top-level names to py_pubsub.egg-info/top_level.txt
+[1.196s] reading manifest file 'py_pubsub.egg-info/SOURCES.txt'
+[1.196s] writing manifest file 'py_pubsub.egg-info/SOURCES.txt'
+[1.218s] running build_ext
+[1.219s] Creating /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py-pubsub.egg-link (link to .)
+[1.219s] Installing listener script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.219s] Installing rover = mds_rover.rover:mainanchor script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.219s] Installing talker script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[1.219s] 
+[1.220s] Installed /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub
+[1.220s] running install_data
+[1.240s] Invoked command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub' returned '0': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub --editable --build-directory /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/build --no-deps install_data --install-dir /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub

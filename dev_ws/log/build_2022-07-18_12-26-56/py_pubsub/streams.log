@@ -1,0 +1,23 @@
+[0.587s] Invoking command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/src/py_pubsub': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/py_pubsub build --build-base /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/build install --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub --record /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/install.log --single-version-externally-managed
+[0.772s] running egg_info
+[0.773s] writing ../../build/py_pubsub/py_pubsub.egg-info/PKG-INFO
+[0.773s] writing dependency_links to ../../build/py_pubsub/py_pubsub.egg-info/dependency_links.txt
+[0.773s] writing entry points to ../../build/py_pubsub/py_pubsub.egg-info/entry_points.txt
+[0.773s] writing requirements to ../../build/py_pubsub/py_pubsub.egg-info/requires.txt
+[0.773s] writing top-level names to ../../build/py_pubsub/py_pubsub.egg-info/top_level.txt
+[0.798s] reading manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[0.798s] writing manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[0.799s] running build
+[0.799s] running build_py
+[0.799s] running install
+[0.799s] running install_lib
+[0.800s] running install_data
+[0.800s] copying package.xml -> /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/share/py_pubsub
+[0.801s] running install_egg_info
+[0.802s] removing '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub-0.0.0-py3.8.egg-info' (and everything under it)
+[0.802s] Copying ../../build/py_pubsub/py_pubsub.egg-info to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub-0.0.0-py3.8.egg-info
+[0.803s] running install_scripts
+[0.815s] Installing listener script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[0.816s] Installing talker script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/py_pubsub
+[0.816s] writing list of installed files to '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/install.log'
+[0.829s] Invoked command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/src/py_pubsub' returned '0': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/py_pubsub build --build-base /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/build install --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/py_pubsub --record /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/py_pubsub/install.log --single-version-externally-managed

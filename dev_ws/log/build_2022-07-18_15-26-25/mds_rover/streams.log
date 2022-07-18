@@ -1,0 +1,23 @@
+[0.802s] Invoking command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/src/mds_rover': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/mds_rover build --build-base /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/build install --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover --record /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/install.log --single-version-externally-managed
+[0.970s] running egg_info
+[0.970s] writing ../../build/mds_rover/mds_rover.egg-info/PKG-INFO
+[0.970s] writing dependency_links to ../../build/mds_rover/mds_rover.egg-info/dependency_links.txt
+[0.970s] writing entry points to ../../build/mds_rover/mds_rover.egg-info/entry_points.txt
+[0.970s] writing requirements to ../../build/mds_rover/mds_rover.egg-info/requires.txt
+[0.970s] writing top-level names to ../../build/mds_rover/mds_rover.egg-info/top_level.txt
+[0.998s] reading manifest file '../../build/mds_rover/mds_rover.egg-info/SOURCES.txt'
+[0.999s] writing manifest file '../../build/mds_rover/mds_rover.egg-info/SOURCES.txt'
+[0.999s] running build
+[0.999s] running build_py
+[0.999s] running install
+[0.999s] running install_lib
+[1.000s] running install_data
+[1.001s] copying launch/mds_rover.launch.py -> /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/share/mds_rover
+[1.001s] running install_egg_info
+[1.002s] removing '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover-0.0.0-py3.8.egg-info' (and everything under it)
+[1.002s] Copying ../../build/mds_rover/mds_rover.egg-info to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover-0.0.0-py3.8.egg-info
+[1.003s] running install_scripts
+[1.015s] Installing anchor script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/mds_rover
+[1.015s] Installing rover script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/mds_rover
+[1.015s] writing list of installed files to '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/install.log'
+[1.032s] Invoked command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/src/mds_rover' returned '0': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/mds_rover build --build-base /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/build install --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover --record /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/install.log --single-version-externally-managed
