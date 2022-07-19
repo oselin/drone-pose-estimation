@@ -5,3 +5,5 @@ from UAV.Algebra import rotateMatrix
 from UAV.Algebra import theta_i1
 from UAV.Algebra import THETA_i
 from UAV.Algebra import theta_i2
+from UAV.Algebra import estimate_theta
+from UAV.Algebra import DM_from_S
