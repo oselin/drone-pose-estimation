@@ -1,0 +1,18 @@
+[0.608s] Invoking command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover --editable --build-directory /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/build --no-deps install_data --install-dir /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover
+[0.763s] running develop
+[0.869s] running egg_info
+[0.870s] writing mds_rover.egg-info/PKG-INFO
+[0.870s] writing dependency_links to mds_rover.egg-info/dependency_links.txt
+[0.870s] writing entry points to mds_rover.egg-info/entry_points.txt
+[0.870s] writing requirements to mds_rover.egg-info/requires.txt
+[0.870s] writing top-level names to mds_rover.egg-info/top_level.txt
+[0.890s] reading manifest file 'mds_rover.egg-info/SOURCES.txt'
+[0.891s] writing manifest file 'mds_rover.egg-info/SOURCES.txt'
+[0.911s] running build_ext
+[0.912s] Creating /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds-rover.egg-link (link to .)
+[0.912s] Installing anchor script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/mds_rover
+[0.912s] Installing rover script to /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/mds_rover
+[0.912s] 
+[0.913s] Installed /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover
+[0.913s] running install_data
+[0.942s] Invoked command in '/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover' returned '0': PYTHONPATH=/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --prefix /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover --editable --build-directory /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/build/mds_rover/build --no-deps install_data --install-dir /home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover
