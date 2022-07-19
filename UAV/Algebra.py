@@ -78,7 +78,7 @@ def estimate_theta(DM2,DMprime,Sstar,displ,index=1,verbose=0):
         print("cos(theta):\t%f" % (cosTheta))
         print("sin(theta):\t%f" % (sinTheta))
         print("\nActual theta:\t",theta)
-        print("Approxim theta:\t",atheta)
+        print("Approx theta:\t",atheta)
 
     return atheta
 
@@ -87,16 +87,12 @@ def estimate_theta2(DM2,DMprime,Sstar,displ,index=1,verbose=0):
     deltaX = displ[0]
     deltaY = displ[1]
 
-    a2 = DM2[0,index] - DMprime[0,index] + deltaX**2 + deltaY**2
-    b2 = -2*(Sstar[0,index]*deltaX + Sstar[1,index]*deltaY)    
-    c2 =  2*(Sstar[0,index]*deltaY - Sstar[1,index]*deltaX)    
+    a = DM2[0,index] - DMprime[0,index] + deltaX**2 + deltaY**2
+    b = -2*(Sstar[0,index]*deltaX + Sstar[1,index]*deltaY)    
+    c =  2*(Sstar[0,index]*deltaY - Sstar[1,index]*deltaX)    
 
-    a3 = DM2[0,index + 1] - DMprime[0,index + 1] + deltaX**2 + deltaY**2
-    b3 = -2*(Sstar[0,index + 1]*deltaX + Sstar[1,index + 1]*deltaY)     
-    c3 =  2*(Sstar[0,index + 1]*deltaY - Sstar[1,index + 1]*deltaX) 
-
-    theta1 = np.arctan2(a2*b2 + np.abs(c2)*np.sqrt(b2**2+c2**2-a2**2), a2*c2 - b2/c2*np.abs(c2)*np.sqrt(b2**2+c2**2-a2**2))
-    theta2 = np.arctan2(a2*b2 - np.abs(c2)*np.sqrt(b2**2+c2**2-a2**2), a2*c2 + b2/c2*np.abs(c2)*np.sqrt(b2**2+c2**2-a2**2))
+    theta1 = np.arctan2((-a*c**2-np.sqrt(-c**2*(a**2-b**2-c**2))*b)/(b**2+c**2)/c,(-a*b+np.sqrt(-c**2*(a**2-b**2-c**2)))/(b**2+c**2))
+    theta2 = np.arctan2((-a*c**2+np.sqrt(-c**2*(a**2-b**2-c**2))*b)/(b**2+c**2)/c,(-a*b-np.sqrt(-c**2*(a**2-b**2-c**2)))/(b**2+c**2))
 
     return [theta1,theta2]
 
