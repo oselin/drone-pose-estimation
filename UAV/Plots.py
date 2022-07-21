@@ -4,9 +4,16 @@ import random
 
 def plot_points(S, **kwargs):
     
-    c_set = [(0,0,0)] + [(random.random(),
-                          random.random(),
-                          random.random()) for _ in range(len(S[1,:])-1)]
+    col = (0,0,0)
+    c_set = [col]
+
+    for _ in range(len(S[1,:])-1):
+        while col in c_set:
+            col = (random.random(),
+                    random.random(),
+                    random.random())
+        c_set.append(col)
+
     c = 0
     
     nargs = len(kwargs.items())
