@@ -1,0 +1,5 @@
+  File "/home/giacomo/Desktop/Unmanned Vehicles/UV prj/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover/rover.py", line 47
+    def main(args=None):
+    ^
+SyntaxError: invalid syntax
+

@@ -3,7 +3,7 @@ from rclpy.node import Node
 from .position import Position
 from rcl_interfaces.msg import ParameterDescriptor
 
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Int32MultiArray
 
 
 class Rover(Node):
@@ -19,20 +19,28 @@ class Rover(Node):
         param_descriptor2 = ParameterDescriptor(
             description = 'ID of the robot'
         )
-        self.declare_parameter('index','1',param_descriptor2)
+        self.declare_parameter('index',1,param_descriptor2)
 
-        print(self.get_parameters(["index","position"]))
-        self.index = self.get_parameter("index")
-        print(self.index)
-        self.publisher_ = self.create_publisher(Float32MultiArray, "/distances/" + self.get_name() , 10) #+ str(self.index)
+        param_descriptor3 = ParameterDescriptor(
+            description = 'Vector of squared euclidean distances of the current drone from all others'
+        )
+        self.declare_parameter('dists',[2,2],param_descriptor3)
+        #self.get_logger().error(self.get_parameter('dists').get_parameter_value().double_array_value)
+
+        self.index = self.get_parameter("index").value
+        self.position = self.get_parameter("position").value
+        self.dists = self.get_parameter("dists").value
+        self.publisher_ = self.create_publisher(Int32MultiArray, "/distances/" + self.get_name() , 10) 
         timer_period = 1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        msg = Float32MultiArray()
-        msg.data = [1.0,1.0,1.0]
+
+        self.get_logger().error(str(self.dists))
+        msg = Int32MultiArray()
+        msg.data = self.dists
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
+        self.get_logger().info('Publishing: "%s"' % ' ,'.join([str(elem) for elem in msg.data]))
 
     
 

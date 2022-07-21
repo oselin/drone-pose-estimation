@@ -18,7 +18,7 @@ from rclpy.node import Node
 from functools import partial
 from rcl_interfaces.msg import ParameterDescriptor
 
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Int32MultiArray
 
 
 
@@ -44,7 +44,7 @@ class Anchor(Node):
         self.subs = []
         self.d_mat = np.empty((self.number_of_drones,self.number_of_drones), dtype=float)
         for i in range(self.number_of_drones):
-            self.subs.append(self.create_subscription(Float32MultiArray,
+            self.subs.append(self.create_subscription(Int32MultiArray,
                                                                 '/distances/rover' + str(i),
                                                                 partial(self.listener_callback,i),
                                                                 10))
