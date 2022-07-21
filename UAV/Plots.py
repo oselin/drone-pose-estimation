@@ -42,15 +42,19 @@ def plot_points(S, **kwargs):
 
         if c >= nargs: break
         
-        axis[0,c].scatter(value[0,:], value[1,:], color=c_set, alpha=1.0)
-        axis[0,c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
-        axis[0,c].set_title('MDS w/ ' + title)
-
         if match:
+            axis[0,c].scatter(value[0,:], value[1,:], color=c_set, alpha=1.0)
+            axis[0,c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
+            axis[0,c].set_title('MDS w/ ' + title)
+
             axis[1,c].scatter(alg.match_anchor(S,value)[0,:], alg.match_anchor(S,value)[1,:], color=c_set, alpha=1.0)
             axis[1,c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
             axis[1,c].set_title('Overlapped anchor, MDS w/ ' + title)
-
+        
+        else:
+            axis[c].scatter(value[0,:], value[1,:], color=c_set, alpha=1.0)
+            axis[c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
+            axis[c].set_title('MDS w/ ' + title)
         c += 1
 
     plt.show()
