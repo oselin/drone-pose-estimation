@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import UAV.Algebra as alg
+import numpy as np
 
 
 
@@ -8,10 +9,16 @@ def plot_points(S, **kwargs):
     
     match = c = 0
 
-    if len(S[0,:]) == 3:
-        c_set = ['black','blue','orange']
-    else:
-        c_set = ['black'] + ['green' for i in range(1,len(S[0,:]))]
+    c_set = col = [[0,0,0]]
+
+    for i in range(len(S[1,:])-1):
+        while col in c_set:
+            col = [np.random.choice(range(256))/256,
+                   np.random.choice(range(256))/256,
+                   np.random.choice(range(256))/256
+            ]
+        c_set.append(col)
+
     
     nargs = len(kwargs.items())
 
