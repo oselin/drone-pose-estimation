@@ -1,11 +1,17 @@
-import matplotlib.pyplot as plt    
+import matplotlib.pyplot as plt
+import UAV.Algebra as alg
 
 
 
 
 def plot_points(S, **kwargs):
     
-    c_set = ['black'] + ['green' for i in range(1,len(S[0,:]))]
+    match = c = 0
+
+    if len(S[0,:]) == 3:
+        c_set = ['black','blue','orange']
+    else:
+        c_set = ['black'] + ['green' for i in range(1,len(S[0,:]))]
     
     nargs = len(kwargs.items())
 
@@ -21,20 +27,30 @@ def plot_points(S, **kwargs):
 
         return
 
-    fig = plt.figure(nargs, (5*nargs,4))
+  
 
-    c = 0
+    if list(kwargs.items())[-1][0] == 'match':
+        
+        if type(list(kwargs.items())[-1][1]) == int:
+            match = list(kwargs.items())[-1][1]
+        nargs -= 1
+    
+    
+    fig,axis = plt.subplots((match+1),nargs, figsize=(5*nargs,4*(match+1)))
 
     for title,value in kwargs.items():
 
-        c += 1
-        plt_index = int('%i%i%i' % (1,nargs,c))
-        ax = fig.add_subplot(plt_index)
+        if c >= nargs: break
         
-        plt.scatter(value[0,:], value[1,:], color=c_set, alpha=1.0)
-        plt.scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
+        axis[0,c].scatter(value[0,:], value[1,:], color=c_set, alpha=1.0)
+        axis[0,c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
+        axis[0,c].set_title('MDS w/ ' + title)
 
-        plt.title('MDS w/ ' + title)
-        fig.subplots_adjust(wspace=.4, hspace=0.5)
+        if match:
+            axis[1,c].scatter(alg.match_anchor(S,value)[0,:], alg.match_anchor(S,value)[1,:], color=c_set, alpha=1.0)
+            axis[1,c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
+            axis[1,c].set_title('Overlapped anchor, MDS w/ ' + title)
+
+        c += 1
 
     plt.show()

@@ -42,7 +42,7 @@ def theta_i2(theta1, THETA):
     return g(theta1 + 2*THETA) 
 
 
-def estimate_theta(DM2,DMprime,Sstar,displ,index=1,verbose=0):
+def estimate_theta(DM2,DMprime,Sstar,displ,index=1,approx = 0,verbose=0):
 
     deltaX = displ[0]
     deltaY = displ[1]
@@ -78,9 +78,16 @@ def estimate_theta(DM2,DMprime,Sstar,displ,index=1,verbose=0):
         print("cos(theta):\t%f" % (cosTheta))
         print("sin(theta):\t%f" % (sinTheta))
         print("\nActual theta:\t",theta)
-        print("Approx theta:\t",atheta)
+        
+        if approx:
+            print("Approx theta:\t",atheta)
+        else:
+            print("Approx theta:\tDisabled")
 
-    return atheta
+    if approx:
+        return atheta
+    else:
+        return theta
 
 def estimate_theta2(DM2,DMprime,Sstar,displ,index=1,verbose=0):
     
@@ -110,3 +117,50 @@ def DM_from_S(S,verbose=0):
         print("DM' :\n",DMprime)
     
     return DMprime
+
+
+
+def EVD(DM,final_dimension):
+
+    n = len(DM) #since it is a square matrix, no need to specify len for columns or rows
+    
+    # Centering Matrix definition
+    H = np.identity(n) - np.ones((n,n))
+
+    # Double centered matrix
+    B = -1/2*H@DM@H
+
+    # Eiegenvalue decomposition
+    ev, EV = np.linalg.eig(B)
+
+    LAMBDA = np.eye(final_dimension)
+    U = np.zeros((n,final_dimension))
+
+    for i in range(final_dimension):
+        # Search for the heighest eigenvalue. Put it into lambda and its associated vector in U.
+        # Eventually set the eigenvalue to -1000 to find the other heighest eigenvalues
+        ind  = np.argmax(ev)
+        LAMBDA[i,i] = ev[ind]
+        U[:,i] = EV[:,ind]
+        ev[ind] = -1000
+
+
+    S_star = np.sqrt(LAMBDA)@U.T
+
+    return S_star
+
+
+def match_anchor(S,S_star, verbose = 0):
+
+    displX = S[0,0] - S_star[0,0]
+    displY = S[1,0] - S_star[1,0]
+
+    displacement_matrix = np.array([[displX for _ in range(len(S[0,:]))],
+                                    [displY for _ in range(len(S[0,:]))]])
+
+    if (verbose == 1):
+        print("X displacement: ", displX)
+        print("Y displacement: ", displY)
+
+        print("Displacement matrix:\n",displacement_matrix)
+    return S_star + displacement_matrix
