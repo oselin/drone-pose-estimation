@@ -139,9 +139,9 @@ end proc:
        DM := dm(S):
 
        H := IdentityMatrix(NROBOTS) -e.Transpose(e)/NROBOTS:
-       print(H):
+       #print(H):
        B := -1/2*H.DM.H:
-       print(B):
+       #print(B):
        ev, EV := Eigenvectors(B):
        #print(ev,EV):
        ev := map(Re,ev):
