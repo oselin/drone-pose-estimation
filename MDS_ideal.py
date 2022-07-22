@@ -69,27 +69,22 @@ S_prime2 = S + DeltaS_prime2
 
 DM_prime2 = DM_from_S(S_prime2,verbose=1)
 
+
 theta_r2 = estimate_theta(DM2,DM_prime2,S_star2,[deltaX2,deltaY2],approx=2,verbose=0)
 print("theta_r2 : ", theta_r2)
 
 
 if (theta_r2 != 0):
-    F = np.array([[-1,0],[0,1]])
+  F = np.array([[-1,0],[0,1]])
     
-    theta_r3 = estimate_theta(DM2,DM_prime,F@S_star,[deltaX1,deltaY1],verbose=0)
-    theta = LSE(DM2,DM_prime,F@S_star,[deltaX1,deltaY1])
+  theta_r3 = estimate_theta(DM2,DM_prime,F@S_star,[deltaX1,deltaY1],verbose=0)
+  theta = LSE(DM2,DM_prime,F@S_star,[deltaX1,deltaY1])
 
-    print("Wrong estimated angle:",theta_r)
-    print("True  estimated angle:", theta_r3)
+  print("Wrong estimated angle:",theta_r)
+  print("True  estimated angle:", theta_r3)
 
-    # MDS algorithm: vector of estimated coordinate S*
-    S_star = F@EVD(DM2,DIMENSION)
-
-    # Remove translational ambiguities
-    S_star = match_anchor(S,S_star,verbose=1)
-
-    S_star2 = rotateMatrix(theta_r3)@S_star
-    S_starMin = rotateMatrix(theta.x)@S_star
+  S_star2 = rotateMatrix(theta_r3)@F@S_star
+  S_starMin = rotateMatrix(theta.x)@F@S_star
 
 
 plot_points(S,S_star  = S_star,
