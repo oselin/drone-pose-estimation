@@ -145,7 +145,7 @@ def EVD(DM,final_dimension):
     n = len(DM) #since it is a square matrix, no need to specify len for columns or rows
     
     # Centering Matrix definition
-    H = np.identity(n) - np.ones((n,n))
+    H = np.identity(n) - np.ones((n,n))/n
 
     # Double centered matrix
     B = -1/2*H@DM@H
@@ -160,8 +160,8 @@ def EVD(DM,final_dimension):
         # Search for the heighest eigenvalue. Put it into lambda and its associated vector in U.
         # Eventually set the eigenvalue to -1000 to find the other heighest eigenvalues
         ind  = np.argmax(ev)
-        LAMBDA[i,i] = ev[ind]
-        U[:,i] = EV[:,ind]
+        LAMBDA[i,i] = ev[ind].real
+        U[:,[i]]  = EV[:,[ind]].real
         ev[ind] = -1000
 
 
@@ -182,7 +182,7 @@ def match_anchor(S,S_star, verbose = 0):
         print("X displacement: ", displX)
         print("Y displacement: ", displY)
 
-        print("Displacement matrix:\n",displacement_matrix)
+        print("\nDisplacement matrix:\n",displacement_matrix)
     return S_star + displacement_matrix
 
 
