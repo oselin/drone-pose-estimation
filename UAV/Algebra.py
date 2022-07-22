@@ -1,4 +1,5 @@
 import numpy as np
+from  scipy.optimize import minimize_scalar
 
 def d_matrix(platoon):
     d_mat = np.zeros((len(platoon),len(platoon)))
@@ -183,3 +184,27 @@ def match_anchor(S,S_star, verbose = 0):
 
         print("Displacement matrix:\n",displacement_matrix)
     return S_star + displacement_matrix
+
+
+def obj(theta,DM2,DMprime,Sstar,displ):
+    deltaX = displ[0]
+    deltaY = displ[1]
+
+    obj = 0
+
+    for index in range(len(DM2)):
+
+        a = DM2[0,index] - DMprime[0,index] + deltaX**2 + deltaY**2
+        b = -2*(Sstar[0,index]*deltaX + Sstar[1,index]*deltaY)    
+        c =  2*(Sstar[0,index]*deltaY - Sstar[1,index]*deltaX)
+
+        obj += (a + b*np.cos(theta) + c*np.sin(theta))**2
+
+    return obj
+
+
+def LSE(DM2,DMprime,Sstar,displ):
+
+    r = minimize_scalar(obj,args=(DM2,DMprime,Sstar,displ))
+ 
+    return r

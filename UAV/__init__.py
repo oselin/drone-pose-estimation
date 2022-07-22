@@ -11,4 +11,6 @@ from UAV.Algebra import estimate_theta3
 from UAV.Algebra import DM_from_S
 from UAV.Algebra import EVD
 from UAV.Algebra import match_anchor
+from UAV.Algebra import g
+from UAV.Algebra import LSE
 from UAV.Plots   import plot_points
