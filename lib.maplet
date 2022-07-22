@@ -1,0 +1,70 @@
+
+dm := proc(S)
+      local e,i,Phi,DM:
+      e := <seq(1,i=1..NROBOTS)>:
+
+      Phi := Diagonal(Transpose(S).S):
+
+      DM := Phi.Transpose(e) - 2*Transpose(S).S + e.Transpose(Phi):
+
+      return DM:    
+end proc:
+
+MDS := proc(S)
+       local e,i,DM,H,B,ev,EV,el,cev, Lambda, U:
+
+       e := <seq(1,i=1..NROBOTS)>:
+       DM := dm(S):
+
+       H := IdentityMatrix(NROBOTS) -e.Transpose(e)/NROBOTS:
+       #print(H):
+       B := -1/2*H.DM.H:
+
+       ev, EV := Eigenvectors(B):
+       #print(ev,EV):
+       ev := map(Re,ev):
+       el := []:
+       cev := []:
+       for i from 1 to DIM do
+          el  := [op(el),max[index](ev)]:
+          cev := [op(cev),max(ev)]:
+          ev[el[-1]] := -100000:
+       end do:
+
+       Lambda := Matrix(DIM,DIM,fill=0,readonly=false):
+
+       for i from 1 to DIM do
+          if i= 1 then
+             U := <EV[1..-1,el[i]]>:
+          else
+             U := <U|EV[1..-1,el[i]]>:
+          end if:
+          Lambda(i,i) := cev[i]:          
+       end do:
+       #print(Lambda):
+       #print(Transpose(U)):
+       return map(Re,map(sqrt,Lambda).Transpose(U)):
+end proc:
+get_theta := proc(DMa,DM_primea,DeltaXa,DeltaYa,S_stara,i)
+     
+     local a,b,c,eq,sol:
+     a := i -> DMa[1,i] - DM_primea[1,i] + DeltaXa^2 + DeltaYa^2:
+     b := i -> -2*(S_stara[1,i]*DeltaXa + S_stara[2,i]*DeltaYa):
+     c := i ->  2*(S_stara[1,i]*DeltaYa - S_stara[2,i]*DeltaXa):
+
+     eq := i-> a(i) + b(i)*cos(theta) + c(i)*sin(theta):
+     
+     sol := solve([eq(i),eq(i+1)],[sin(theta),cos(theta)]);
+     return arctan(rhs(op(sol)[1]),rhs(op(sol)[2])):
+
+end proc: 
+rotateMatrix:= theta -> <<cos(theta),-sin(theta)>|<sin(theta),cos(theta)>>;
+plot_points := proc(S)
+     local pp,i:
+     pp := []:
+     for i from 1 to Dimension(S[1,1..-1]) do
+         pp := [op(pp),plottools:-disk([S[1,i],S[2,i]],0.1, color = c_set[i])]:
+     end do:
+     
+     plots:-display(pp,scaling=constrained):
+end proc:
