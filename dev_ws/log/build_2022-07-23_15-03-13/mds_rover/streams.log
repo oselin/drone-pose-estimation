@@ -1,0 +1,23 @@
+[1.418s] Invoking command in '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/src/mds_rover': PYTHONPATH=/home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/mds_rover build --build-base /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/mds_rover/build install --prefix /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover --record /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/mds_rover/install.log --single-version-externally-managed
+[1.740s] running egg_info
+[1.741s] writing ../../build/mds_rover/mds_rover.egg-info/PKG-INFO
+[1.741s] writing dependency_links to ../../build/mds_rover/mds_rover.egg-info/dependency_links.txt
+[1.742s] writing entry points to ../../build/mds_rover/mds_rover.egg-info/entry_points.txt
+[1.742s] writing requirements to ../../build/mds_rover/mds_rover.egg-info/requires.txt
+[1.742s] writing top-level names to ../../build/mds_rover/mds_rover.egg-info/top_level.txt
+[1.791s] reading manifest file '../../build/mds_rover/mds_rover.egg-info/SOURCES.txt'
+[1.793s] writing manifest file '../../build/mds_rover/mds_rover.egg-info/SOURCES.txt'
+[1.793s] running build
+[1.793s] running build_py
+[1.793s] running install
+[1.795s] running install_lib
+[1.797s] running install_data
+[1.798s] copying config/config.yaml -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/share/mds_rover
+[1.798s] running install_egg_info
+[1.801s] removing '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover-0.0.0-py3.8.egg-info' (and everything under it)
+[1.801s] Copying ../../build/mds_rover/mds_rover.egg-info to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/lib/python3.8/site-packages/mds_rover-0.0.0-py3.8.egg-info
+[1.803s] running install_scripts
+[1.830s] Installing anchor script to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/lib/mds_rover
+[1.830s] Installing rover script to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/lib/mds_rover
+[1.831s] writing list of installed files to '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/mds_rover/install.log'
+[1.867s] Invoked command in '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/src/mds_rover' returned '0': PYTHONPATH=/home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/mds_rover build --build-base /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/mds_rover/build install --prefix /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/mds_rover --record /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/mds_rover/install.log --single-version-externally-managed

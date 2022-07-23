@@ -1,0 +1,42 @@
+[1.916s] Invoking command in '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/src/py_pubsub': PYTHONPATH=/home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/py_pubsub build --build-base /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build install --prefix /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub --record /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/install.log --single-version-externally-managed
+[2.384s] running egg_info
+[2.385s] creating ../../build/py_pubsub/py_pubsub.egg-info
+[2.387s] writing ../../build/py_pubsub/py_pubsub.egg-info/PKG-INFO
+[2.388s] writing dependency_links to ../../build/py_pubsub/py_pubsub.egg-info/dependency_links.txt
+[2.388s] writing entry points to ../../build/py_pubsub/py_pubsub.egg-info/entry_points.txt
+[2.388s] writing requirements to ../../build/py_pubsub/py_pubsub.egg-info/requires.txt
+[2.388s] writing top-level names to ../../build/py_pubsub/py_pubsub.egg-info/top_level.txt
+[2.393s] writing manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[2.462s] reading manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[2.464s] writing manifest file '../../build/py_pubsub/py_pubsub.egg-info/SOURCES.txt'
+[2.465s] running build
+[2.465s] running build_py
+[2.465s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build
+[2.466s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib
+[2.466s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[2.466s] copying py_pubsub/__init__.py -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[2.466s] copying py_pubsub/publisher_member_function.py -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[2.467s] copying py_pubsub/subscriber_member_function.py -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub
+[2.467s] running install
+[2.468s] running install_lib
+[2.469s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[2.470s] copying /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub/__init__.py -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[2.470s] copying /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub/publisher_member_function.py -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[2.470s] copying /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build/lib/py_pubsub/subscriber_member_function.py -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub
+[2.471s] byte-compiling /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub/__init__.py to __init__.cpython-38.pyc
+[2.473s] byte-compiling /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub/publisher_member_function.py to publisher_member_function.cpython-38.pyc
+[2.473s] byte-compiling /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub/subscriber_member_function.py to subscriber_member_function.cpython-38.pyc
+[2.474s] running install_data
+[2.475s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index
+[2.476s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index/resource_index
+[2.476s] creating /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index/resource_index/packages
+[2.476s] copying resource/py_pubsub -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/share/ament_index/resource_index/packages
+[2.476s] copying package.xml -> /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/share/py_pubsub
+[2.476s] running install_egg_info
+[2.478s] Copying ../../build/py_pubsub/py_pubsub.egg-info to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages/py_pubsub-0.0.0-py3.8.egg-info
+[2.480s] running install_scripts
+[2.506s] Installing listener script to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/py_pubsub
+[2.507s] Installing rover = mds_rover.rover:mainanchor script to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/py_pubsub
+[2.507s] Installing talker script to /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/py_pubsub
+[2.507s] writing list of installed files to '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/install.log'
+[2.543s] Invoked command in '/home/periot/Desktop/D/drone-pose-estimation/dev_ws/src/py_pubsub' returned '0': PYTHONPATH=/home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/py_pubsub build --build-base /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/build install --prefix /home/periot/Desktop/D/drone-pose-estimation/dev_ws/install/py_pubsub --record /home/periot/Desktop/D/drone-pose-estimation/dev_ws/build/py_pubsub/install.log --single-version-externally-managed

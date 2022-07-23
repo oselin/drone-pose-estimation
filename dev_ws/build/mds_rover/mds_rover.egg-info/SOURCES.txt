@@ -8,6 +8,7 @@ setup.py
 ../../build/mds_rover/mds_rover.egg-info/requires.txt
 ../../build/mds_rover/mds_rover.egg-info/top_level.txt
 ../../build/mds_rover/mds_rover.egg-info/zip-safe
+config/config.yaml
 launch/mds_rover.launch.py
 mds_rover/__init__.py
 mds_rover/anchor.py
