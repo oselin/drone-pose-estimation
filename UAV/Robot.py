@@ -15,6 +15,8 @@ class Robot:
     def x(self,value):
         if value != "" and type(value) == str:
             self.__id = value
+        else:
+            raise Exception("ID: bad input provided")
 
     @property
     def x(self):
@@ -26,7 +28,7 @@ class Robot:
         elif type(value) == int:
             self.__x = float(value)
         else:
-            return "Bad input provided"
+            raise Exception("X: bad input provided")
     
     @property
     def y(self):
@@ -38,7 +40,7 @@ class Robot:
         elif type(value) == int:
             self.__y = float(value)
         else:
-            return "Bad input provided"
+            raise Exception("Y: bad input provided")
 
     @property
     def z(self):
@@ -50,7 +52,7 @@ class Robot:
         elif type(value) == int:
             self.__z = float(value)
         else:
-            return "Bad input provided"
+            raise Exception("Z: bad input provided")
             
     #GET-SET METHODS
     def get_coords(self):

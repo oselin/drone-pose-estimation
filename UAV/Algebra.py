@@ -3,9 +3,6 @@ import numpy as np
 from  scipy.optimize import minimize_scalar
 
 
-
-
-
 def EVD(DM,final_dimension):
 
     n = len(DM) #since it is a square matrix, no need to specify len for columns or rows
@@ -51,8 +48,8 @@ def remove_offset(S,S_star, verbose = 0):
     return S_star + displacement_matrix
     
 
-def move_anchor():
-    DeltaS_prime = np.array([[0 for i in range(N_ROBOTS)] for j in range(2)],dtype=float)
+def move_anchor(N):
+    DeltaS_prime = np.array([[0 for i in range(N)] for j in range(2)],dtype=float)
     DeltaS_prime[:,0] = [np.random.rand(),np.random.rand()]
 
     return DeltaS_prime
@@ -80,8 +77,8 @@ def DM_from_platoon2(platoon):
 
 def DM_from_S(S,verbose=0):
 
-    e   = np.ones(1,len(S[0,:]))
-
+    e   = np.ones((1,len(S[0,:]))).T
+    
     Phi_prime = np.array([np.diag(S.T@S)]).T    
     DM_prime = Phi_prime@e.T - 2*S.T@S + e@Phi_prime.T
 
@@ -171,7 +168,6 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
         S_star2 = rotateMatrix(theta_r)@F@S_star
 
     return S_star2
-
 
 
 def obj(theta,DM2,DM_prime,S_star,displ):
