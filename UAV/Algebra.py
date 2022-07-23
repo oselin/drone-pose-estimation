@@ -48,9 +48,13 @@ def remove_offset(S,S_star, verbose = 0):
     return S_star + displacement_matrix
     
 
-def move_anchor(N):
-    DeltaS_prime = np.array([[0 for i in range(N)] for j in range(2)],dtype=float)
-    DeltaS_prime[:,0] = [np.random.rand(),np.random.rand()]
+def move(DIM,N,all=0):
+    DeltaS_prime = np.zeros((DIM,N))
+
+    if all:
+        DeltaS_prime[:,1:] = [[np.random.normal() for _ in range(N-1)] for _ in range(DIM)]
+    else:
+        DeltaS_prime[:,0] = [np.random.rand(),np.random.rand()]
 
     return DeltaS_prime
 
