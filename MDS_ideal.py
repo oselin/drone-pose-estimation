@@ -1,7 +1,7 @@
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
-import time
+
 #GLOBAL PARAMETERS
 N_ROBOTS  = 5
 DIMENSION = 2
@@ -12,10 +12,10 @@ platoon = []
 
 # INITIALIZATION OF THE ROBOTS
 for i in range(N_ROBOTS):
-    #if i==0:
-    #    i_robot = Robot("op_" + str(i),0,0,0)
-    #else:
-    i_robot = Robot("op_" + str(i),np.random.uniform(0, 10.0),np.random.uniform(0, 10.0),0)
+    if i==0:
+        i_robot = Robot("op_" + str(i),0,0,0)
+    else:
+        i_robot = Robot("op_" + str(i),np.random.uniform(0, 10.0),np.random.uniform(0, 10.0),0)
     platoon.append(i_robot)
 
 coordinates = [[],[],[]]
@@ -33,6 +33,7 @@ S_anc = np.copy(S)
 S_anc[:,1:] = np.zeros((2,len(S[0,:])-1))
 
 plt.ion()
+ii = 1
 while True:
 
     # Simulate the communication among UAVs and get distances
@@ -50,8 +51,9 @@ while True:
     # Simulate a NEW communication among UAVs and get distances
     DM_prime2 = DM_from_S(S_prime2)
 
-    S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
+    S_estim = MDS(ii,S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
     
-    plot_points(plt,S=S, S_estim = S_estim)
-    time.sleep(10)
-    #S += move(DIMENSION,N_ROBOTS,all=1)
+    plot_points(ii,plt,S=S, S_estim = S_estim)
+
+    S += move(DIMENSION,N_ROBOTS,all=1)
+    ii += 1

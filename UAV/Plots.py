@@ -1,16 +1,16 @@
 #!/usr/bin/env
 import random
 
-def plot_points(plt,**kwargs):
+def plot_points(ii,plt,**kwargs):
     
     if len(kwargs.items()) == 0:
          raise Exception("No data provided")
     else:
-        generate_plot(plt,list(kwargs.items()))
+        generate_plot(ii,plt,list(kwargs.items()))
 
 
 
-def generate_plot(plt,data):
+def generate_plot(ii,plt,data):
 
     # Data processing
     S = data[0][1]
@@ -32,12 +32,14 @@ def generate_plot(plt,data):
     fig, axis = plt.subplots(1,n_plots, figsize=(5*n_plots,4),num=1, clear=True)
 
     c = 0
-    xl = [min(S[0,:])-2,max(S[0,:])+2]
-    yl = [min(S[1,:])-2,max(S[1,:])+2]
+    #xl = [min(S[0,:])-2,max(S[0,:])+2]
+    #yl = [min(S[1,:])-2,max(S[1,:])+2]
+    xl = [-15,15]
+    yl = [-15,15]
     for title,value in data:
         axis[c].scatter(value[0,:], value[1,:], color=c_set, alpha=1.0)
         axis[c].scatter(S    [0,:], S    [1,:], color=c_set, alpha=0.2)
-        axis[c].set_title('MDS w/ ' + title)
+        axis[c].set_title(str(ii) + ' MDS w/ ' + title)
         axis[c].set_xlim(xl)
         axis[c].set_ylim(yl)
 

@@ -45,6 +45,9 @@ def remove_offset(S,S_star, verbose = 0):
         print("X displacement: ", displX)
         print("Y displacement: ", displY)
         print("\nDisplacement matrix:\n",displacement_matrix)
+
+        print('Sx : ',S[0,0])
+        print('S*x: ',S_star[0,0])
     return S_star + displacement_matrix
     
 
@@ -133,7 +136,7 @@ def get_theta(DM,DM_prime,S_star,displ,index=1,approx = 0,verbose=0):
     if approx == 1:
         atheta = round(theta,4)
     elif approx == 2:
-        atheta = round(theta,1)
+        atheta = round(theta,3)
     if verbose > 0:
         print("cos(theta):\t%f" % (cosTheta))
         print("sin(theta):\t%f" % (sinTheta))
@@ -148,7 +151,7 @@ def get_theta(DM,DM_prime,S_star,displ,index=1,approx = 0,verbose=0):
         return theta
 
 
-def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
+def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     # Eigenvalue decomposition for a first estimation of the coordinates: S*
     S_star = EVD(DM,DIM)
@@ -164,7 +167,7 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     # Estimation of the new rotation angle after another displacement
     theta_r2 = get_theta(DM,DM_prime2,S_star2,S_prime2-S,approx=2)
-
+    
     # Find if there is any flip ambiguities
     if (theta_r2 != 0):
         F = np.array([[-1,0],[0,1]])
