@@ -1,7 +1,8 @@
 import numpy as np
 from UAV import *
+#import ..UAV
 import matplotlib.pyplot as plt
-import time
+#import time
 
 #GLOBAL PARAMETERS
 N_ROBOTS  = 5

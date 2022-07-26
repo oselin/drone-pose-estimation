@@ -161,7 +161,7 @@ def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
     S_star = EVD(DM,DIM)
 
     # Remove translational ambiguities
-    S_star, offset = remove_offset(S,S_star,verbose=1)
+    S_star, offset = remove_offset(S,S_star)
 
     # Estimation of the rotation angle: theta_r
     theta_r   = get_theta(DM,DM_prime,S_star,S_prime-S)
