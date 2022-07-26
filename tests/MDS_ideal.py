@@ -1,5 +1,5 @@
 import numpy as np
-from UAV import *
+from ..UAV import *
 import matplotlib.pyplot as plt
 #import time
 
