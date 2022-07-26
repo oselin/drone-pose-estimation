@@ -11,20 +11,19 @@ class Rover(Node):
     def __init__(self):
         super().__init__('rover') #+ str(self.get_parameter("index")))
 
-        param_descriptor1 = ParameterDescriptor(
-            description = 'Position of the robot'
+        self.declare_parameter(
+            'position',
+            '{"x":2.0,"y":1.0,"z":0.0}',
+            ParameterDescriptor(description = 'Position of the robot'        )
         )
-        self.declare_parameter('position','{"x":2.0,"y":1.0,"z":0.0}',param_descriptor1)
 
-        param_descriptor2 = ParameterDescriptor(
+        self.declare_parameter('index',1,ParameterDescriptor(
             description = 'ID of the robot'
-        )
-        self.declare_parameter('index',1,param_descriptor2)
+        ))
 
-        param_descriptor3 = ParameterDescriptor(
+        self.declare_parameter('dists',[2,2],ParameterDescriptor(
             description = 'Vector of squared euclidean distances of the current drone from all others'
-        )
-        self.declare_parameter('dists',[2,2],param_descriptor3)
+        ))
         #self.get_logger().error(self.get_parameter('dists').get_parameter_value().double_array_value)
 
         self.index = self.get_parameter("index").value

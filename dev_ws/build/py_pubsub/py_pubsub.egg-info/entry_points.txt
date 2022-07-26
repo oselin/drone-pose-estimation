@@ -1,5 +1,0 @@
-[console_scripts]
-listener = py_pubsub.subscriber_member_function:main
-rover = mds_rover.rover:mainanchor = mds_rover.anchor:main
-talker = py_pubsub.publisher_member_function:main
-
