@@ -155,7 +155,7 @@ def get_theta(DM,DM_prime,S_star,displ,index=1,approx = 0,verbose=0):
         return theta
 
 
-def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
+def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     # Eigenvalue decomposition for a first estimation of the coordinates: S*
     S_star = EVD(DM,DIM)

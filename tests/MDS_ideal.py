@@ -1,6 +1,5 @@
 import numpy as np
 from UAV import *
-#import ..UAV
 import matplotlib.pyplot as plt
 #import time
 
@@ -54,7 +53,7 @@ while True:
     # Simulate a NEW communication among UAVs and get distances
     DM_prime2 = DM_from_S(S_prime2)
 
-    SS,S_estim = MDS(ii,S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
+    SS,S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
     
     plot_points(ii,plt,S=S, SS= SS,S_estim = S_estim)
 
