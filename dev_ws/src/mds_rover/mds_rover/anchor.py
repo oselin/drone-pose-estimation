@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dev_ws.src.UAV.Algebra import test
 import rclpy
+import sys
 import numpy as np
 from rclpy.node import Node
 from functools import partial
 from rcl_interfaces.msg import ParameterDescriptor
-
 from std_msgs.msg import Float32MultiArray
-
 from .position import Position
+
+sys.path.append('./src')
+from UAV import *
 
 
 class Anchor(Node):
@@ -74,6 +77,8 @@ class Anchor(Node):
     def mds(self):
         if not all(fb == True for fb in self.received):
             return
+        test()
+
         self.get_logger().info("MDS calculated on a full matrix")
         self.received = np.full(self.number_of_nodes, False)
 

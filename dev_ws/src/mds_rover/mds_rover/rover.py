@@ -13,20 +13,6 @@ class Rover(Node):
 
         self.declare_parameter(
             'position',
-<<<<<<< HEAD
-            '{"x":2.0,"y":1.0,"z":0.0}',
-            ParameterDescriptor(description = 'Position of the robot'        )
-        )
-
-        self.declare_parameter('index',1,ParameterDescriptor(
-            description = 'ID of the robot'
-        ))
-
-        self.declare_parameter('dists',[2,2],ParameterDescriptor(
-            description = 'Vector of squared euclidean distances of the current drone from all others'
-        ))
-        #self.get_logger().error(self.get_parameter('dists').get_parameter_value().double_array_value)
-=======
             None,
             ParameterDescriptor(description='Position of the robot')
         )
@@ -43,7 +29,6 @@ class Rover(Node):
             ParameterDescriptor(
                 description='Vector of distances from all others robots')
         )
->>>>>>> 57cf030c3562d1c17e00e19b717ef6beeed274aa
 
         self.index = self.get_parameter("index").value
         self.position = self.get_parameter("position").value
