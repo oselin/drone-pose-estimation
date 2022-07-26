@@ -1,6 +1,7 @@
 from setuptools import setup
+from glob import glob
 
-package_name = 'py_pubsub'
+package_name = 'mds_rover'
 
 setup(
     name=package_name,
@@ -10,6 +11,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/'+ package_name, glob('launch/*.launch.py')),
+        ('share/'+ package_name, glob('config/*config.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -18,12 +21,10 @@ setup(
     description='package for a distributed system of rovers sending relative position to an anchor which suns an MDS algorithm to find the platoon configuration',
     license='Apache License 2.0',
     tests_require=['pytest'],
-entry_points={
+    entry_points={
         'console_scripts': [
-                'talker = py_pubsub.publisher_member_function:main',
-                'listener = py_pubsub.subscriber_member_function:main',
-                'rover = mds_rover.rover:main'
-                'anchor = mds_rover.anchor:main'
-        ],
-},
+            'rover = mds_rover.rover:main',
+            'anchor = mds_rover.anchor:main',
+        ]
+    },
 )
