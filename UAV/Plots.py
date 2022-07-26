@@ -6,11 +6,17 @@ def plot_points(ii,plt,**kwargs):
     if len(kwargs.items()) == 0:
          raise Exception("No data provided")
     else:
-        generate_plot(ii,plt,list(kwargs.items()))
+        dim = len(list(kwargs.items())[0][1][:,0]) 
+        if dim == 2:
+            generate_plot_2D(ii,plt,list(kwargs.items()))
+        elif dim == 3:
+            generate_plot_3D(ii,plt,list(kwargs.items()))
+        else:
+            raise Exception("Wrong data provided")
 
 
 
-def generate_plot(ii,plt,data):
+def generate_plot_2D(ii,plt,data):
 
     # Data processing
     S = data[0][1]
@@ -48,3 +54,7 @@ def generate_plot(ii,plt,data):
 
     # Define and update plot
     plt.pause(0.001)
+
+
+def generate_plot_3D(ii,plt,data):
+    return

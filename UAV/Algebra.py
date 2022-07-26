@@ -48,7 +48,10 @@ def remove_offset(S,S_star, verbose = 0):
 
         print('Sx : ',S[0,0])
         print('S*x: ',S_star[0,0])
-    return S_star + displacement_matrix
+        print('Sy :',S[1,0])
+        print('S*y: ',S_star[1,0])
+        print(S_star + displacement_matrix - S)
+    return S_star + displacement_matrix, displacement_matrix
     
 
 def move(DIM,N,all=0):
@@ -102,6 +105,7 @@ def rotateMatrix(theta):
     return np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
 
 
+#def translateMatrix(transl):
 def get_theta(DM,DM_prime,S_star,displ,index=1,approx = 0,verbose=0):
 
     deltaX = displ[0,0]
@@ -157,7 +161,7 @@ def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
     S_star = EVD(DM,DIM)
 
     # Remove translational ambiguities
-    S_star = remove_offset(S,S_star)
+    S_star, offset = remove_offset(S,S_star,verbose=1)
 
     # Estimation of the rotation angle: theta_r
     theta_r   = get_theta(DM,DM_prime,S_star,S_prime-S)
@@ -167,14 +171,14 @@ def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     # Estimation of the new rotation angle after another displacement
     theta_r2 = get_theta(DM,DM_prime2,S_star2,S_prime2-S,approx=2)
-    
+
     # Find if there is any flip ambiguities
     if (theta_r2 != 0):
         F = np.array([[-1,0],[0,1]])
         theta_r = get_theta(DM,DM_prime,F@S_star,S_prime-S)
         S_star2 = rotateMatrix(theta_r)@F@S_star
 
-    return S_star2
+    return S_star,S_star2
 
 
 def obj(theta,DM2,DM_prime,S_star,displ):

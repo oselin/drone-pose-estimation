@@ -1,6 +1,7 @@
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
+import time
 
 #GLOBAL PARAMETERS
 N_ROBOTS  = 5
@@ -40,6 +41,7 @@ while True:
     #DM = DM_from_platoon2(platoon)
     DM = DM_from_S(S)
     
+
     # Simulate the movement of the anchor/leader drone
     S_prime = S + move(DIMENSION,N_ROBOTS)
     # Simulate a NEW communication among UAVs and get distances
@@ -51,9 +53,10 @@ while True:
     # Simulate a NEW communication among UAVs and get distances
     DM_prime2 = DM_from_S(S_prime2)
 
-    S_estim = MDS(ii,S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
+    SS,S_estim = MDS(ii,S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
     
-    plot_points(ii,plt,S=S, S_estim = S_estim)
+    plot_points(ii,plt,S=S, SS= SS,S_estim = S_estim)
 
     S += move(DIMENSION,N_ROBOTS,all=1)
     ii += 1
+    #time.sleep(10)
