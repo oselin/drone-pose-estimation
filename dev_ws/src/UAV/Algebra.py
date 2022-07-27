@@ -101,6 +101,17 @@ def DM_from_S(S,verbose=0):
     return DM_prime
 
 
+def noise_matrix(DIM, mu, sigma):
+    m = np.zeros((DIM,DIM))
+
+    for i in range(DIM):
+        for j in range(DIM):
+            m[i,j] = np.random.normal(mu,sigma)
+    return m
+
+def square(matrix):
+    return np.power(matrix,2)
+    
 def rotateMatrix(theta):
     return np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
 

@@ -1,8 +1,6 @@
 import sys
 sys.path.append('./dev_ws/src')
 
-for i in sys.path:
-    print(i)
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
@@ -63,4 +61,4 @@ while True:
 
     S += move(DIMENSION,N_ROBOTS,all=1)
     ii += 1
-    #time.sleep(10)
+

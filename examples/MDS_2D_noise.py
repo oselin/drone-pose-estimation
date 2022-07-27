@@ -4,6 +4,9 @@ sys.path.append('./dev_ws/src')
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
+a = noise_matrix(2,0,1)
+print(a)
+print(square(a))
 
 #GLOBAL PARAMETERS
 N_ROBOTS  = 5
@@ -61,4 +64,3 @@ while True:
 
     S += move(DIMENSION,N_ROBOTS,all=1)
     ii += 1
-    #time.sleep(10)

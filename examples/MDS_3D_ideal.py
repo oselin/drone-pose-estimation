@@ -61,4 +61,3 @@ while True:
 
     S += move(DIMENSION,N_ROBOTS,all=1)
     ii += 1
-    #time.sleep(10)
