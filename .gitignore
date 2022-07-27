@@ -52,3 +52,4 @@ qtcreator-*
 CATKIN_IGNORE
 
 dev_ws/src/UAV/__pycache__
+.vscode
