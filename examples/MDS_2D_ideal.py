@@ -1,6 +1,8 @@
 import sys
 sys.path.append('./dev_ws/src')
 
+for i in sys.path:
+    print(i)
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
