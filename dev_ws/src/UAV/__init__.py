@@ -8,7 +8,5 @@ from Algebra import rotateMatrix
 from Algebra import get_theta
 from Algebra import EVD
 from Algebra import MDS
-from Algebra import test
-
 
 from .Plots   import plot_points

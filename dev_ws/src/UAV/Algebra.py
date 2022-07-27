@@ -180,8 +180,6 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     return S_star,S_star2
 
-def test():
-    print("ci siamo")
 
 def obj(theta,DM2,DM_prime,S_star,displ):
     deltaX = displ[0]
