@@ -4,7 +4,7 @@ sys.path.append('./dev_ws/src')
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
-
+import time
 #GLOBAL PARAMETERS
 N_ROBOTS  = 3
 DIMENSION = 2
@@ -57,16 +57,10 @@ while True:
     # Simulate a NEW communication among UAVs and get distances
     DM_prime2 = square(DM_from_S(S_prime2) + noise_matrix(N_ROBOTS,0,1))
 
-    print(DM,'\n')
-    print(DM_prime,'\n')
-    print(DM_prime2,'\n')
-    print(S,'\n')
-    print(S_prime,'\n')
-    print(S_prime2,'\n')
-    exit()
     SS,S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION,noise='Gaussian')
     
     plot_points(ii,plt,S=S, SS= SS,S_estim = S_estim)
 
     S += move(DIMENSION,N_ROBOTS,all=1)
     ii += 1
+    time.sleep(4)

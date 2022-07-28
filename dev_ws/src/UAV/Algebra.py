@@ -198,32 +198,45 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
     S_star, offset = remove_offset(S,S_star)
 
     # Estimation of the rotation angle: theta_r
-    theta_r   = get_theta(DM,DM_prime,S_star,S_prime-S)
+    if not noise:
+        theta_r   = get_theta(DM,DM_prime,S_star,S_prime-S)
+    else:
+        theta_r = LSE(DM,DM_prime,S_star,S_prime-S).x
 
     # New rotated coordinates: S**
     S_star2 = rotateMatrix(theta_r)@S_star
 
     # Estimation of the new rotation angle after another displacement
-    theta_r2 = get_theta(DM,DM_prime2,S_star2,S_prime2-S,approx=2)
+    if not noise:
+        theta_r2 = get_theta(DM,DM_prime2,S_star2,S_prime2-S,approx=2)
+    else:
+        theta_r2 = LSE(DM,DM_prime2,S_star2,S_prime2-S).x
 
     # Find if there is any flip ambiguities
-    if (theta_r2 != 0):
+    if (not noise) and (theta_r2 != 0):
         F = np.array([[-1,0],[0,1]])
         theta_r = get_theta(DM,DM_prime,F@S_star,S_prime-S)
         S_star2 = rotateMatrix(theta_r)@F@S_star
 
+    if noise:
+        # Let's find the optimal threshold
+        l = 1/2*g(-2*np.arctan2((S_prime-S)[0,0],(S_prime-S)[1,0]) + 2*np.arctan2((S_prime2-S)[0,0],(S_prime2-S)[1,0]))
+        if theta_r2 > l:
+            F = np.array([[-1,0],[0,1]])
+            theta_r = LSE(DM,DM_prime,F@S_star,S_prime-S).x
+            S_star2 = rotateMatrix(theta_r)@F@S_star
     return S_star,S_star2
 
 
-def obj(theta,DM2,DM_prime,S_star,displ):
-    deltaX = displ[0]
-    deltaY = displ[1]
+def obj(theta,DM,DM_prime,S_star,displ):
+    deltaX = displ[0,0]
+    deltaY = displ[1,0]
 
     obj = 0
 
-    for index in range(len(DM2)):
+    for index in range(len(DM)):
 
-        a = DM2[0,index] - DM_prime[0,index] + deltaX**2 + deltaY**2
+        a = DM[0,index] - DM_prime[0,index] + deltaX**2 + deltaY**2
         b = -2*(S_star[0,index]*deltaX + S_star[1,index]*deltaY)    
         c =  2*(S_star[0,index]*deltaY - S_star[1,index]*deltaX)
 
@@ -232,9 +245,9 @@ def obj(theta,DM2,DM_prime,S_star,displ):
     return obj
 
 
-def LSE(DM2,DM_prime,S_star,displ):
+def LSE(DM,DM_prime,S_star,displ):
 
-    r = minimize_scalar(obj,args=(DM2,DM_prime,S_star,displ))
+    r = minimize_scalar(obj,args=(DM,DM_prime,S_star,displ))
  
     return r
 
