@@ -47,13 +47,13 @@ while True:
     # Simulate the movement of the anchor/leader drone
     S_prime = S + move(DIMENSION,N_ROBOTS)
     # Simulate a NEW communication among UAVs and get distances
-    DM_prime = DM_from_S(S_prime)
+    DM_prime = DM_from_S2(S_prime)
 
 
     # Simulate a NEW movement of the anchor/leader drone to detect flip ambiguities
     S_prime2 = S_prime + move(DIMENSION,N_ROBOTS)
     # Simulate a NEW communication among UAVs and get distances
-    DM_prime2 = DM_from_S(S_prime2)
+    DM_prime2 = DM_from_S2(S_prime2)
 
     SS,S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
     
