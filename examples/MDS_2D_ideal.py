@@ -41,7 +41,7 @@ while True:
 
     # Simulate the communication among UAVs and get distances
     #DM = DM_from_platoon2(platoon)
-    DM = DM_from_S(S)
+    DM = DM_from_S2(S)
     
 
     # Simulate the movement of the anchor/leader drone

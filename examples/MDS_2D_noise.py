@@ -4,9 +4,6 @@ sys.path.append('./dev_ws/src')
 import numpy as np
 from UAV import *
 import matplotlib.pyplot as plt
-a = noise_matrix(2,0,1)
-print(a)
-print(square(a))
 
 #GLOBAL PARAMETERS
 N_ROBOTS  = 5
@@ -43,22 +40,24 @@ ii = 1
 while True:
 
     # Simulate the communication among UAVs and get distances
-    #DM = DM_from_platoon2(platoon)
-    DM = DM_from_S(S)
+    DM = DM_from_platoon(platoon)
     
+    # Add Gaussian noise: mean: 0 | variance: 1
+    DM = square(DM + noise_matrix(N_ROBOTS,0,1))
 
     # Simulate the movement of the anchor/leader drone
     S_prime = S + move(DIMENSION,N_ROBOTS)
-    # Simulate a NEW communication among UAVs and get distances
-    DM_prime = DM_from_S(S_prime)
 
+    # Simulate a NEW communication among UAVs and get distances
+    DM_prime = square(DM_from_S(S_prime) + noise_matrix(N_ROBOTS,0,1))
+    
 
     # Simulate a NEW movement of the anchor/leader drone to detect flip ambiguities
     S_prime2 = S_prime + move(DIMENSION,N_ROBOTS)
     # Simulate a NEW communication among UAVs and get distances
-    DM_prime2 = DM_from_S(S_prime2)
+    DM_prime2 = square(DM_from_S(S_prime2) + noise_matrix(N_ROBOTS,0,1))
 
-    SS,S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
+    SS,S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION,noise='Gaussian')
     
     plot_points(ii,plt,S=S, SS= SS,S_estim = S_estim)
 
