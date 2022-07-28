@@ -111,7 +111,8 @@ def noise_matrix(DIM, mu, sigma):
 
     for i in range(DIM):
         for j in range(DIM):
-            m[i,j] = np.random.normal(mu,sigma)
+            if (i!=j):
+                m[i,j] = np.random.normal(mu,sigma)
     return m
 
 
