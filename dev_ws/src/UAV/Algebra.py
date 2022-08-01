@@ -199,9 +199,9 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     # Estimation of the rotation angle: theta_r
     if not noise:
-        theta_r   = get_theta(DM,DM_prime,S_star,S_prime-S)
+        theta_r = get_theta(DM,DM_prime,S_star,S_prime-S)
     else:
-        theta_r = LSE(DM,DM_prime,S_star,S_prime-S).x
+        theta_r = LSE(DM,DM_prime,S_star,S_prime-S)
 
     # New rotated coordinates: S**
     S_star2 = rotateMatrix(theta_r)@S_star
@@ -210,7 +210,7 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
     if not noise:
         theta_r2 = get_theta(DM,DM_prime2,S_star2,S_prime2-S,approx=2)
     else:
-        theta_r2 = LSE(DM,DM_prime2,S_star2,S_prime2-S).x
+        theta_r2 = LSE(DM,DM_prime2,S_star2,S_prime2-S)
 
     # Find if there is any flip ambiguities
     if (not noise) and (theta_r2 != 0):
@@ -220,10 +220,12 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     if noise:
         # Let's find the optimal threshold
+
         l = 1/2*g(-2*np.arctan2((S_prime-S)[0,0],(S_prime-S)[1,0]) + 2*np.arctan2((S_prime2-S)[0,0],(S_prime2-S)[1,0]))
-        if theta_r2 > l:
+        print(l)
+        if np.abs(theta_r2) > np.abs(l):
             F = np.array([[-1,0],[0,1]])
-            theta_r = LSE(DM,DM_prime,F@S_star,S_prime-S).x
+            theta_r = LSE(DM,DM_prime,F@S_star,S_prime-S)
             S_star2 = rotateMatrix(theta_r)@F@S_star
     return S_star,S_star2
 
@@ -234,8 +236,7 @@ def obj(theta,DM,DM_prime,S_star,displ):
 
     obj = 0
 
-    for index in range(len(DM)):
-
+    for index in range(1,len(DM)):
         a = DM[0,index] - DM_prime[0,index] + deltaX**2 + deltaY**2
         b = -2*(S_star[0,index]*deltaX + S_star[1,index]*deltaY)    
         c =  2*(S_star[0,index]*deltaY - S_star[1,index]*deltaX)
@@ -249,33 +250,43 @@ def LSE(DM,DM_prime,S_star,displ):
 
     r = minimize_scalar(obj,args=(DM,DM_prime,S_star,displ))
  
-    return r
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return r.x
 
 
 def g(t):
     if (t >= -np.pi and t < np.pi):
         return t - 2*np.pi*np.floor(t/(2*np.pi)+1/2)
+    else:
+        print('Exception: angle out of range [-Pi,Pi]')
+        return t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def theta_i1(S_star,S,index):
     print(index)
