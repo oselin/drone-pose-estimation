@@ -186,10 +186,16 @@ def get_theta(DM,DM_prime,S_star,displ,index=1,approx = 0,verbose=0):
 
 def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
-    if (noise != 0):
+    if (noise):
         DM        = expected_value(DM,noise)
         DM_prime  = expected_value(DM_prime,noise)
         DM_prime2 = expected_value(DM_prime2,noise)
+#        print(DM)
+#        print()
+#        print(DM_prime)
+#        print()
+#        print(DM_prime2)
+#        print()
  
     # Eigenvalue decomposition for a first estimation of the coordinates: S*
     S_star = EVD(DM,DIM)
@@ -218,6 +224,7 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
         theta_r = get_theta(DM,DM_prime,F@S_star,S_prime-S)
         S_star2 = rotateMatrix(theta_r)@F@S_star
 
+    S_s = np.copy(S_star2)
     if noise:
         # Let's find the optimal threshold
 
@@ -227,7 +234,7 @@ def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
             F = np.array([[-1,0],[0,1]])
             theta_r = LSE(DM,DM_prime,F@S_star,S_prime-S)
             S_star2 = rotateMatrix(theta_r)@F@S_star
-    return S_star,S_star2
+    return S_star,S_s,S_star2
 
 
 def obj(theta,DM,DM_prime,S_star,displ):
@@ -236,7 +243,7 @@ def obj(theta,DM,DM_prime,S_star,displ):
 
     obj = 0
 
-    for index in range(1,len(DM)):
+    for index in range(len(DM)):
         a = DM[0,index] - DM_prime[0,index] + deltaX**2 + deltaY**2
         b = -2*(S_star[0,index]*deltaX + S_star[1,index]*deltaY)    
         c =  2*(S_star[0,index]*deltaY - S_star[1,index]*deltaX)
