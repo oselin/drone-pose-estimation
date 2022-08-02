@@ -128,15 +128,15 @@
 
       return DM:    
 end proc:
+
 </Text-field>
 </Input>
 </Group>
 <Group labelreference="L51" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">MDS := proc(S)
-       local e,i,DM,H,B,ev,EV,el,cev, Lambda, U:
+       local e,i,H,B,ev,EV,el,cev, Lambda, U:
 
        e := &lt;seq(1,i=1..NROBOTS)&gt;:
-       DM := dm(S):
 
        H := IdentityMatrix(NROBOTS) -e.Transpose(e)/NROBOTS:
        #print(H):
@@ -166,7 +166,9 @@ end proc:
        #print(Lambda):
        #print(Transpose(U)):
        return map(Re,map(sqrt,Lambda).Transpose(U)):
-end proc:</Text-field>
+end proc:
+
+</Text-field>
 </Input>
 </Group>
 <Group hide-input="false" labelreference="L62" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
@@ -186,7 +188,9 @@ end proc: </Text-field>
 </Input>
 </Group>
 <Group hide-input="false" labelreference="L63" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">rotateMatrix:= theta -&gt; &lt;&lt;cos(theta),-sin(theta)&gt;|&lt;sin(theta),cos(theta)&gt;&gt;;</Text-field>
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">rotateMatrix:= theta -&gt; &lt;&lt;cos(theta),-sin(theta)&gt;|&lt;sin(theta),cos(theta)&gt;&gt;;
+
+</Text-field>
 </Input>
 </Group>
 <Group labelreference="L64" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
@@ -198,6 +202,53 @@ end proc: </Text-field>
      end do:
      
      plots:-display(pp,scaling=constrained):
+end proc:
+
+</Text-field>
+</Input>
+</Group>
+<Group labelreference="L66" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">generate_noise := proc()
+      local noise,i,P:
+      noise  := Transpose(&lt;SignalProcessing:-GenerateGaussian(NROBOTS, 0, 1)&gt;):
+
+      for i from 1 to NROBOTS-1 do
+           P := Transpose(&lt;SignalProcessing:-GenerateGaussian(NROBOTS, 0, 1)&gt;):
+           noise:= &lt;noise|P&gt;:
+           noise[i,i] := 0:
+      end do:   
+      noise[NROBOTS,NROBOTS] := 0:
+      return noise:
+end proc:
+
+</Text-field>
+</Input>
+</Group>
+<Group labelreference="L65" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">dm_noise := proc(S)
+      local DM:
+      DM := dm(S):
+      DM := DM + generate_noise():
+
+      DM := map(proc(x) x^2 end proc,DM):
+      return DM:
+
+end proc:
+
+</Text-field>
+</Input>
+</Group>
+<Group labelreference="L67" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">expected_value := proc(myDM)
+      local i,j,a:
+      for i from 1 to NROBOTS do
+          for j from 1 to NROBOTS do
+              a := 1/2*(myDM[i,j] + myDM[j,i]):
+              myDM[i,j] := a:
+              myDM[j,i] := a:
+           end do:
+      end do:
+      return myDM:
 end proc:</Text-field>
 </Input>
 </Group>

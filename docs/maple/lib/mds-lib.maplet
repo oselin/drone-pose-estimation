@@ -10,11 +10,11 @@ dm := proc(S)
       return DM:    
 end proc:
 
+
 MDS := proc(S)
-       local e,i,DM,H,B,ev,EV,el,cev, Lambda, U:
+       local e,i,H,B,ev,EV,el,cev, Lambda, U:
 
        e := <seq(1,i=1..NROBOTS)>:
-       DM := dm(S):
 
        H := IdentityMatrix(NROBOTS) -e.Transpose(e)/NROBOTS:
        #print(H):
@@ -45,6 +45,8 @@ MDS := proc(S)
        #print(Transpose(U)):
        return map(Re,map(sqrt,Lambda).Transpose(U)):
 end proc:
+
+
 get_theta := proc(DMa,DM_primea,DeltaXa,DeltaYa,S_stara,i)
      
      local a,b,c,eq,sol:
@@ -59,6 +61,8 @@ get_theta := proc(DMa,DM_primea,DeltaXa,DeltaYa,S_stara,i)
 
 end proc: 
 rotateMatrix:= theta -> <<cos(theta),-sin(theta)>|<sin(theta),cos(theta)>>;
+
+
 plot_points := proc(S)
      local pp,i:
      pp := []:
@@ -67,4 +71,42 @@ plot_points := proc(S)
      end do:
      
      plots:-display(pp,scaling=constrained):
+end proc:
+
+
+generate_noise := proc()
+      local noise,i,P:
+      noise  := Transpose(<SignalProcessing:-GenerateGaussian(NROBOTS, 0, 1)>):
+
+      for i from 1 to NROBOTS-1 do
+           P := Transpose(<SignalProcessing:-GenerateGaussian(NROBOTS, 0, 1)>):
+           noise:= <noise|P>:
+           noise[i,i] := 0:
+      end do:   
+      noise[NROBOTS,NROBOTS] := 0:
+      return noise:
+end proc:
+
+
+dm_noise := proc(S)
+      local DM:
+      DM := dm(S):
+      DM := DM + generate_noise():
+
+      DM := map(proc(x) x^2 end proc,DM):
+      return DM:
+
+end proc:
+
+
+expected_value := proc(myDM)
+      local i,j,a:
+      for i from 1 to NROBOTS do
+          for j from 1 to NROBOTS do
+              a := 1/2*(myDM[i,j] + myDM[j,i]):
+              myDM[i,j] := a:
+              myDM[j,i] := a:
+           end do:
+      end do:
+      return myDM:
 end proc:
