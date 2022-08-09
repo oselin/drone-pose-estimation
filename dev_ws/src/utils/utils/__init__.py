@@ -11,4 +11,4 @@ from Algebra import MDS
 from Algebra import test
 
 
-from .Plots   import plot_points
+from Plots   import plot_points

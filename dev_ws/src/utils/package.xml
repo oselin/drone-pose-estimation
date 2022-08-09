@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>mds_rover</name>
+  <name>utils</name>
   <version>0.0.0</version>
-  <description>package for a distributed system of rovers sending relative position to an anchor which suns an MDS algorithm to find the platoon configuration</description>
-  <maintainer email="giacomo.mutti@studenti.unitn.it">giacomo</maintainer>
-  <license>Apache License 2.0</license>
+  <description>TODO: Package description</description>
+  <maintainer email="riccardo.periotto@gmail.com">periot</maintainer>
+  <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
