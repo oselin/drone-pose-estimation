@@ -1,5 +1,5 @@
 import sys
-sys.path.append('')
+sys.path.append('./dev_ws/src')
 
 import numpy as np
 from UAV import *
@@ -41,24 +41,24 @@ while True:
 
     # Simulate the communication among UAVs and get distances
     #DM = DM_from_platoon2(platoon)
-    DM = DM_from_S(S)
+    DM = DM_from_S2(S)
     
 
     # Simulate the movement of the anchor/leader drone
     S_prime = S + move(DIMENSION,N_ROBOTS)
     # Simulate a NEW communication among UAVs and get distances
-    DM_prime = DM_from_S(S_prime)
+    DM_prime = DM_from_S2(S_prime)
 
 
     # Simulate a NEW movement of the anchor/leader drone to detect flip ambiguities
     S_prime2 = S_prime + move(DIMENSION,N_ROBOTS)
     # Simulate a NEW communication among UAVs and get distances
-    DM_prime2 = DM_from_S(S_prime2)
+    DM_prime2 = DM_from_S2(S_prime2)
 
-    SS,S_estim = MDS(ii,S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
+    SS,S_estim = MDS(S_anc,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIMENSION)
     
     plot_points(ii,plt,S=S, SS= SS,S_estim = S_estim)
 
     S += move(DIMENSION,N_ROBOTS,all=1)
     ii += 1
-    #time.sleep(10)
+

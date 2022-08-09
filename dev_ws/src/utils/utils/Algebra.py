@@ -85,7 +85,7 @@ def DM_from_platoon2(platoon):
     return d_mat
 
 
-def DM_from_S(S,verbose=0):
+def DM_from_S2(S,verbose=0):
 
     e   = np.ones((1,len(S[0,:]))).T
     
@@ -100,6 +100,34 @@ def DM_from_S(S,verbose=0):
     
     return DM_prime
 
+
+def DM_from_S(S):
+    m = DM_from_S2(S)
+    return np.power(m,1/2)
+
+
+def noise_matrix(DIM, mu, sigma):
+    m = np.zeros((DIM,DIM))
+
+    for i in range(DIM):
+        for j in range(DIM):
+            m[i,j] = np.random.normal(mu,sigma)
+    return m
+
+
+def square(matrix):
+    return np.power(matrix,2)
+    
+
+def expected_value(matrix,noise='Gaussian'):
+    if (noise == 'Gaussian'):
+        for i in range(len(matrix[:,0])):
+            for j in range(len(matrix[0,:])):
+                matrix[i,j] = matrix[j,i] = 1/2*(matrix[i,j] + matrix[j,i])
+        return matrix
+    else:
+        raise Exception("Different noise will be further implemented. Please assume Gaussian for now") 
+    
 
 def rotateMatrix(theta):
     return np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
@@ -155,8 +183,13 @@ def get_theta(DM,DM_prime,S_star,displ,index=1,approx = 0,verbose=0):
         return theta
 
 
-def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
+def MDS(S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
+    if (noise != 0):
+        DM        = expected_value(DM,noise)
+        DM_prime  = expected_value(DM_prime,noise)
+        DM_prime2 = expected_value(DM_prime2,noise)
+ 
     # Eigenvalue decomposition for a first estimation of the coordinates: S*
     S_star = EVD(DM,DIM)
 
@@ -180,8 +213,6 @@ def MDS(ii,S,DM,S_prime,DM_prime,S_prime2,DM_prime2,DIM=2,noise=0):
 
     return S_star,S_star2
 
-def test():
-    print("ci siamo")
 
 def obj(theta,DM2,DM_prime,S_star,displ):
     deltaX = displ[0]
