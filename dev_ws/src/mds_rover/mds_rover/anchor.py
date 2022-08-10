@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_ws.src.UAV.Algebra import test
 import rclpy
 import sys
 import numpy as np
@@ -21,9 +20,7 @@ from functools import partial
 from rcl_interfaces.msg import ParameterDescriptor
 from std_msgs.msg import Float32MultiArray
 from .position import Position
-
-sys.path.append('./src')
-from utils import *
+from .algebra import MDS
 
 
 class Anchor(Node):
@@ -48,12 +45,13 @@ class Anchor(Node):
         self.number_of_nodes = self.get_parameter("number_of_nodes").value
 
         # compute the distances, as for the other robots
-        self.dist = [0.0,0.7,0.7,0.7,0.7]
+        self.dist = [0.0, 0.7, 0.7, 0.7, 0.7]
 
         # listen to the topics for the distances
         self.received = np.full(self.number_of_nodes, False)
+        self.received[0] = True
         self.d_mat = np.empty(
-            (self.number_of_nodes, self.number_of_nodes), 
+            (self.number_of_nodes, self.number_of_nodes),
             dtype=float
         )
         self.d_mat[0] = self.dist
@@ -64,7 +62,6 @@ class Anchor(Node):
                 partial(self.listener_callback, i),
                 10
             )
-        
 
     def listener_callback(self, i, msg):
         self.get_logger().info(
@@ -72,15 +69,15 @@ class Anchor(Node):
             ' '.join(str(elem) for elem in msg.data))
         self.d_mat[i] = msg.data
         self.received[i] = True
-        self.mds()
+        self.check_data()
 
-    def mds(self):
-        if not all(fb == True for fb in self.received):
+    def check_data(self):
+        if not all(feedback == True for feedback in self.received):
             return
-        test()
 
-        self.get_logger().info("MDS calculated on a full matrix")
+        MDS()
         self.received = np.full(self.number_of_nodes, False)
+        self.received[0] = True
 
 
 def main(args=None):

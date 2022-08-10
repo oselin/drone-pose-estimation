@@ -14,9 +14,7 @@ setup(
         ('share/'+ package_name, glob('launch/*launch.py')),
         ('share/'+ package_name, glob('config/*config.yaml'))
     ],
-    
-    ext_modules=['UAV'],
-    install_requires=['setuptools', ],
+    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='giacomo',
     maintainer_email='giacomo.mutti@studenti.unitn.it',
