@@ -1,0 +1,6 @@
+source;share/mds_spawner_pkg/hook/pythonpath.ps1
+source;share/mds_spawner_pkg/hook/pythonpath.dsv
+source;share/mds_spawner_pkg/hook/pythonpath.sh
+source;share/mds_spawner_pkg/hook/ament_prefix_path.ps1
+source;share/mds_spawner_pkg/hook/ament_prefix_path.dsv
+source;share/mds_spawner_pkg/hook/ament_prefix_path.sh
