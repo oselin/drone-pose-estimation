@@ -32,8 +32,10 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
-add_executable(square src/square.cpp)
-target_link_libraries(square ${catkin_LIBRARIES})
+# add_executable(square src/square.cpp)
+# ament_target_dependencites(....)
+
+# target_link_libraries(square ${catkin_LIBRARIES})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

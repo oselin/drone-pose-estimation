@@ -4,6 +4,8 @@ from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 
+# ros2 launch iq_sim apm.launch.py fcu_url:=udp://127.0.0.1:14561@14565 mavros_ns:=/drone2 tgt_system:=2
+
 def generate_launch_description():
     fcu_url = LaunchConfiguration('fcu_url', default='udp://127.0.0.1:14551@14555')
     gcs_url = LaunchConfiguration('gcs_url', default='')

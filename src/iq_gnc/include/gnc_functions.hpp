@@ -16,7 +16,7 @@
 // #include <mavros_msgs/State.h>
 #include <mavros_msgs/msg/state.h>
 // #include <nav_msgs/Odometry.h>
-#include <nav_msgs/msg/odometry.h>
+#include "nav_msgs/msg/odometry.h"
 // #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/msg/pose.h>
 // #include <geometry_msgs/PoseStamped.h>
@@ -49,11 +49,18 @@ This module is designed to make high level control programming more simple.
 */
 
 
-mavros_msgs::State current_state_g;
-nav_msgs::Odometry current_pose_g;
-geometry_msgs::Pose correction_vector_g;
-geometry_msgs::Point local_offset_pose_g;
-geometry_msgs::PoseStamped waypoint_g;
+// mavros_msgs::State current_state_g;
+// nav_msgs::Odometry current_pose_g;
+// geometry_msgs::Pose correction_vector_g;
+// geometry_msgs::Point local_offset_pose_g;
+// geometry_msgs::PoseStamped waypoint_g;
+
+
+mavros_msgs::msg::State::SharedPtr current_state_g;
+nav_msgs::msg::Odometry::SharedPtr current_pose_g;
+geometry_msgs::msg::Pose::SharedPtr correction_vector_g;
+geometry_msgs::msg::Point::SharedPtr local_offset_pose_g;
+geometry_msgs::msg::PoseStamped::SharedPtr waypoint_g;
 
 float current_heading_g;
 float local_offset_g;
@@ -61,8 +68,8 @@ float correction_heading_g = 0;
 float local_desired_heading_g; 
 
 
-
-ros::Publisher local_pos_pub;
+rclcpp::Publisher<nav_msgs::msg::PoseStamped> local_pos_pub;
+// ros::Publisher local_pos_pub;
 ros::Publisher global_lla_pos_pub;
 ros::Publisher global_lla_pos_pub_raw;
 ros::Subscriber currentPos;

@@ -7,7 +7,6 @@ void detection_cb(const darknet_ros_msgs::BoundingBoxes::ConstPtr& msg)
 	{
 		ROS_INFO("%s detected", msg->bounding_boxes[i].Class.c_str());	
 	}	
-
 }
 
 

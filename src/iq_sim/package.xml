@@ -11,9 +11,11 @@
 
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
+  <depend>rcutils</depend>
+  <depend>mavros</depend>
+  <depend>mavros_msgs</depend>
   <depend>gazebo_ros</depend>
   <depend>gazebo_ros_pkgs</depend>
-
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
