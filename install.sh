@@ -37,7 +37,6 @@ echo 'source $HOME/drone-pose-estimation/install/local_setup.bash' >> ~/.bashrc
 
 echo 'source /usr/share/gazebo/setup.sh' >> ~/.bashrc 
 
-echo 'export GAZEBO_MODEL_PATH=$HOME/drone-pose-estimation/src/iq_sim/models:$HOME/ardupilot_gazebo/models:$GAZEBO_MODEL_PATH' >> ~/.bashrc 
 
 echo 'alias launch_multi="ros2 launch iq_sim multi_drone.launch.py"' >> ~/.bashrc 
 echo 'source /home/$USER/ardupilot/Tools/completion/completion.bash' >> ~/.bashrc 
@@ -52,8 +51,30 @@ cd ardupilot
 Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Install Gazebo
-sudo apt-get install gazebo11 libgazebo11-dev
+sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+sudo apt update
+sudo apt-get install gazebo11 libgazebo-dev
 
+cd ~
+git clone https://github.com/khancyr/ardupilot_gazebo.git
+cd ardupilot_gazebo
+
+mkdir build
+cd build
+cmake ..
+make -j4
+sudo make install
+
+echo 'export GAZEBO_MODEL_PATH=$HOME/drone-pose-estimation/src/iq_sim/models:$HOME/ardupilot_gazebo/models:$GAZEBO_MODEL_PATH' >> ~/.bashrc 
+. ~/.bashrc
+
+sudo apt install ros-humble-mavros
+sudo apt install ros-humble-mavros-extras
+
+wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+chmod a+x install_geographiclib_datasets.sh
+sudo ./install_geographiclib_datasets.sh
 
 reboot
 
