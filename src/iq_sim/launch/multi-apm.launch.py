@@ -11,22 +11,33 @@ def generate_launch_description():
 
     package_name = 'mavros'
     package_share_directory = get_package_share_directory(package_name)
+
+    apm_pluginlists_file = '/opt/ros/humble/share/mavros/launch/apm_pluginlists.yaml'
+    apm_config_file = '/opt/ros/humble/share/mavros/launch/apm_config.yaml'
     
     # ros2 run mavros mavros_node --ros-args -p fcu_url:=udp://127.0.0.1:14561@14565 -p target_system_id:=2 -p target_component_id:=1 -p fcu_protocol:=v2.0 -r __ns:=/drone2
     mavros_node1 = Node(
         package='mavros',
         executable= 'mavros_node',
-        # name='mavros',
+        # name="mavros",
         parameters=[
-            {'fcu_url': 'udp://127.0.0.1:14551@14555'},
-            # {'gcs_url': ''},
+            {'fcu_url': 'tcp://localhost:5762@5763'},
+            #{'fcu_url': 'udp://127.0.0.1:14551@14555'},
+            #{'gcs_url' : 'udp://@'},
+            {'gcs_url': ''},
             {'target_system_id': 1},
             {'target_component_id': 1},
-            {'fcu_protocol': 'v2.0'}
+            {'fcu_protocol': 'v2.0'},
+            apm_pluginlists_file,
+            apm_config_file,
         ],
+
         namespace='/drone1',
         output='screen',
         respawn=True,
+        # remappings=[
+        #     ("*/", "/mavros")
+        # ]
     )
 
     # mavros_node2 = Node(
@@ -62,13 +73,17 @@ def generate_launch_description():
     # )
 
     # Load parameter files for each node separately
+    # pluginlists_cmd1 = ExecuteProcess(
+    #     cmd=['ros2', 'param', 'load', '/drone1', os.path.join(package_share_directory, 'launch/apm_pluginlists.yaml')],
+    #     output='screen'
+    # )
     pluginlists_cmd1 = ExecuteProcess(
         cmd=['ros2', 'param', 'load', '/drone1', os.path.join(package_share_directory, 'launch/apm_pluginlists.yaml')],
         output='screen'
     )
 
     config_cmd1 = ExecuteProcess(
-        cmd=['ros2', 'param', 'load', '/drone1', os.path.join(package_share_directory, 'launch/apm_config.yaml')],
+        cmd=['ros2', '-params-file', os.path.join(package_share_directory, 'launch/apm_config.yaml')],
         output='screen'
     )
 
@@ -93,8 +108,8 @@ def generate_launch_description():
     )
 
     ld.add_action(mavros_node1)
-    ld.add_action(pluginlists_cmd1)
-    ld.add_action(config_cmd1)
+    # ld.add_action(pluginlists_cmd1)
+    # ld.add_action(config_cmd1)
 
     # ld.add_action(mavros_node2)
     # ld.add_action(pluginlists_cmd2)
