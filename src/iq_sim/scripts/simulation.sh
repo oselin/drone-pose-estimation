@@ -12,8 +12,17 @@ if ! [[ $1 =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+SCRIPT=$(realpath -s "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
 # Generate the correct world
-python3 drone_generation.py $1
+python3 $SCRIPTPATH/generate_world.py $1
+
+# Generate the correct .parm files
+python3 $SCRIPTPATH/generate_gazebo_parms.py $1
+
+# Generate the correct models
+python3 $SCRIPTPATH/generate_models.py $1
 
 # Launch the ArduCopter sessions
 for ((i = 0; i < $1; i++)); do
