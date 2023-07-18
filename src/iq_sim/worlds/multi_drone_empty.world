@@ -15,20 +15,8 @@
           <contact_surface_layer>0.0</contact_surface_layer>
         </constraints>
       </ode>
-      <real_time_update_rate>1000</real_time_update_rate>
-      <max_step_size>0.0010</max_step_size>
+      <real_time_update_rate>-1</real_time_update_rate>
     </physics>
-
-    <scene>
-      <sky>
-        <clouds>
-          <speed>12</speed>
-        </clouds>
-      </sky>
-      <ambient>0.4 0.4 0.4 1</ambient>
-      <background>0.25 0.25 0.25 1</background>
-    </scene>
-
 
     <model name="ground_plane">
       <static>true</static>
@@ -89,13 +77,6 @@
     <include>
       <uri>model://sun</uri>
     </include>
-
-    <model name="vtol">
-      <include>
-        <uri>model://standard_vtol</uri>
-      </include>
-      <pose> 0 0 0 0 0 0</pose>
-    </model>
   </world>
 </sdf>
 
