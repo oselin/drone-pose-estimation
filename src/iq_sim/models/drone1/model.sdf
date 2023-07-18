@@ -1,11 +1,11 @@
-<?xml version='1.0'?>
-<sdf version="1.6" >
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.6">
   <model name="iris_demo">
     <include>
       <uri>model://iris_base</uri>
     </include>
 
-    <!-- plugins -->
+    
     <plugin name="rotor_0_blade_1" filename="libLiftDragPlugin.so">
       <a0>0.3</a0>
       <alpha_stall>1.4</alpha_stall>
@@ -141,22 +141,13 @@
       <fdm_addr>127.0.0.1</fdm_addr>
       <fdm_port_in>9002</fdm_port_in>
       <fdm_port_out>9003</fdm_port_out>
-      <!--
-          Require by APM :
-          Only change model and gazebo from XYZ to XY-Z coordinates
-      -->
+      
       <modelXYZToAirplaneXForwardZDown>0 0 0 3.141593 0 0</modelXYZToAirplaneXForwardZDown>
       <gazeboXYZToNED>0 0 0 3.141593 0 0</gazeboXYZToNED>
       <imuName>iris::iris/imu_link::imu_sensor</imuName>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <control channel="0">
-      <!--
-          incoming control command [0, 1]
-          so offset it by 0 to get [0, 1]
-          and divide max target by 1.
-          offset = 0
-          multiplier = 838 max rpm / 1 = 838
-        -->
+      
         <type>VELOCITY</type>
         <offset>0</offset>
         <p_gain>0.20</p_gain>

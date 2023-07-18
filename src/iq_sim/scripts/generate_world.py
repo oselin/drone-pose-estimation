@@ -35,9 +35,11 @@ def generate_world(drones_number):
 
     # Add the right number of drones
     for i in range(drones_number):
+        print(f"Adding drone to world {i+1}/{drones_number}")
         root.append(new_drone(i))
 
     # Save the modified XML 
+    print("Saving world to file")
     tree.write(os.path.join(script_directory,"../worlds/multi_drone.world"), encoding="utf-8", xml_declaration=True)
 
 if __name__ == "__main__":

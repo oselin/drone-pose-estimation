@@ -4,8 +4,10 @@ folder_path = os.path.expanduser("~/ardupilot/Tools/autotest/default_params/")
 
 def remove_parm(filename=None):
     parm_files = os.listdir(folder_path)
-
+    
     if (filename is not None):
+
+        print("Removing old parameter files")
         for f in parm_files:
             if (filename in f): os.remove(folder_path + f)
 
@@ -39,7 +41,9 @@ def main(n_drones):
         file_name = filename_base + f"{i}.parm"
 
         # Write the file
-        with open(folder_path + file_name, "w") as file: file.write(out)
+        with open(folder_path + file_name, "w") as file: 
+            print(f"Writing new parameter file [{i}/{n_drones}]")
+            file.write(out)
 
 
 if __name__ == "__main__":
