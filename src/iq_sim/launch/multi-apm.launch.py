@@ -21,10 +21,10 @@ def generate_launch_description():
         executable= 'mavros_node',
         # name="mavros",
         parameters=[
-            {'fcu_url': 'tcp://localhost:5763@5762'},
-            #{'fcu_url': 'udp://127.0.0.1:14551@14555'},
+            #{'fcu_url': 'tcp://localhost:5763@5762'},
+            {'fcu_url': 'udp://127.0.0.1:14551@14555'},
             #{'gcs_url' : 'udp://@'},
-            {'gcs_url': ''},
+            #{'gcs_url': ''},
             {'target_system_id': 1},
             {'target_component_id': 1},
             {'fcu_protocol': 'v2.0'},
