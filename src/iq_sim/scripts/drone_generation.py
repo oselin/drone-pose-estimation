@@ -1,13 +1,14 @@
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
+import os, sys
 
+script_directory = os.path.dirname(os.path.abspath(__file__))
 
 def new_drone(index):
     # Create the 'model' element
     model = ET.Element("model")
     model.set("name", f"drone{index}")
     model.text = "\n\t\t"
-    
+
     # Create the 'pose' subelement
     pose = ET.SubElement(model, "pose")
     pose.text = f"{index} 0 0 0 0 0"
@@ -29,7 +30,7 @@ def new_drone(index):
 def generate_world(drones_number):
 
     # Open the XML file
-    tree = ET.parse("../worlds/multi_drone_empty.world")
+    tree = ET.parse(os.path.join(script_directory,"../worlds/multi_drone_empty.world"))
     root = tree.getroot()
 
     # Add the right number of drones
@@ -37,8 +38,10 @@ def generate_world(drones_number):
         root.append(new_drone(i))
 
     # Save the modified XML 
-    tree.write("../worlds/multi_drone.world", encoding="utf-8", xml_declaration=True)
+    tree.write(os.path.join(script_directory,"../worlds/multi_drone.world"), encoding="utf-8", xml_declaration=True)
 
 if __name__ == "__main__":
-    number_drones = 2
+    
+    if (len(sys.argv) == 2): number_drones = int(sys.argv[1])
+    else: number_drones = 1
     generate_world(number_drones)
