@@ -9,9 +9,9 @@ from mavros_msgs.srv import SetMode, CommandBool
 
 from std_msgs.msg import Float32MultiArray
 
-STATE_TOPIC_TEMPLATE = lambda i : f"/drone{i}/local_position/pose"
+POSE_TOPIC_TEMPLATE = lambda i : f"/drone{i}/local_position/pose"
 DISTANCE_TOPIC_TEMPLATE = lambda i : f"/drone{i}/distances"
-TIMESTEP = 0.1
+TIMESTEP = 0.5
 
 class Hub(Node):
     def write_distances(self):
@@ -19,8 +19,14 @@ class Hub(Node):
             msg = Float32MultiArray()
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
-            self.get_logger().info('Distances for drone %i: %s' % (i, str(msg.data)))
+            self.get_logger().info('Distances for drone%i: %s' % (i+1, str(msg.data)))
 
+    def pose_reader_callback(self, received_msg, index):
+        pos = received_msg.pose.position
+        self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
+
+        self.coords[:, index] = [pos.x, pos.y, pos.z]
+    
     def compute_distances(self):
         X = self.coords
         e = np.ones(X.shape[1]).reshape(-1,1)
@@ -32,10 +38,7 @@ class Hub(Node):
         self.compute_distances()
         self.write_distances()
 
-    def coordinates_reader_callback(self, received_msg, index):
-        pos = received_msg.pose.position
-        self.coords[:, index] = [pos.x, pos.y, pos.z]
-    
+
     def __init__(self):
         super().__init__('hub')
         self.get_logger().info("Node to read the coordinates and write the distances")
@@ -50,26 +53,27 @@ class Hub(Node):
         self.get_logger().info("Received parameters:\n \tn_drones:\t%i\n\tnoise:\t\t%s" % (self.n_drones, self.noise))
 
         ## Main components
-        self.distances = np.zeros((self.n_drones, self.n_drones))
-        self.coords = np.zeros((3, self.n_drones))
+        self.distances = np.ones((self.n_drones, self.n_drones))
+        self.coords = np.ones((3, self.n_drones))
 
         ## Topics
         # read the coordinates of all the drones and store them
-        for i in range(1, self.n_drones+1):
-            tmp=self.create_subscription(
+        for i in range(self.n_drones):
+            print("Topic registered to %s " %str(POSE_TOPIC_TEMPLATE(i+1)))
+            self.create_subscription(
                 PoseStamped,
-                STATE_TOPIC_TEMPLATE(i),
-                lambda msg: self.coordinates_reader_callback(msg, i),
+                POSE_TOPIC_TEMPLATE(i+1),
+                lambda msg: self.pose_reader_callback(msg, i),
                 qos_profile_system_default
             )
-            tmp
 
         # write the array of distances for each drone separatedly
         self.distance_writers = []
         for i in range(self.n_drones):
+            print("Topic registered to %s to write " %str(DISTANCE_TOPIC_TEMPLATE(i+1)))
             self.distance_writers.append(self.create_publisher(
                 Float32MultiArray,
-                DISTANCE_TOPIC_TEMPLATE(i),
+                DISTANCE_TOPIC_TEMPLATE(i+1),
                 qos_profile_system_default
             ))
 
