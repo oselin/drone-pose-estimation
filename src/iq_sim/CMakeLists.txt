@@ -21,13 +21,17 @@ find_package(rosidl_default_generators REQUIRED)
 
 include_directories(include)
 
-
 install(DIRECTORY
   launch
   models
   scripts
   worlds
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  scripts/hub.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
