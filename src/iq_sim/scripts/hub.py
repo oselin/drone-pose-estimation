@@ -55,7 +55,7 @@ class Hub(Node):
 
         ## Topics
         # read the coordinates of all the drones and store them
-        for i in range(self.n_drones):
+        for i in range(1, self.n_drones+1):
             tmp=self.create_subscription(
                 PoseStamped,
                 STATE_TOPIC_TEMPLATE(i),

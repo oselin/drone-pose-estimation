@@ -56,4 +56,21 @@ gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=
 
 # Launch the ROS2 Node
 echo
+echo 'Launching an instance of mavros for each node'
+udp_port_base=14541
+for ((i=1;i<=$1;i++)); do
+    udp_port_in=$((udp_port_base + i * 10))
+    echo $udp_port_in
+    udp_port_out=$((udp_port_in + 4))
+    echo $udp_port_out
+    ros2 run mavros mavros_node --ros-args \
+        -p fcu_url:=udp://127.0.0.1:$udp_port_in@$udp_port_out \
+        -p target_system_id:=$i \
+        -p target_component_id:=1 \
+        -p fcu_protocol:=v2.0 \
+        -r __ns:=/drone$i \
+        --params-file /opt/ros/humble/share/mavros/launch/apm_pluginlists.yaml \
+        --params-file /opt/ros/humble/share/mavros/launch/apm_config.yaml &
+done
+
 #ros2 launch iq_sim MDS

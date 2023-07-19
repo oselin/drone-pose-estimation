@@ -1,9 +1,0 @@
-source;share/gtec_msgs/hook/ros_package_path.ps1
-source;share/gtec_msgs/hook/ros_package_path.dsv
-source;share/gtec_msgs/hook/ros_package_path.sh
-source;share/gtec_msgs/hook/pkg_config_path.ps1
-source;share/gtec_msgs/hook/pkg_config_path.dsv
-source;share/gtec_msgs/hook/pkg_config_path.sh
-source;share/gtec_msgs/hook/pkg_config_path_multiarch.ps1
-source;share/gtec_msgs/hook/pkg_config_path_multiarch.dsv
-source;share/gtec_msgs/hook/pkg_config_path_multiarch.sh

@@ -1,0 +1,3 @@
+[submodule "src/iq_sim/scripts/MDS"]
+	path = src/iq_sim/scripts/MDS
+	url = git@github.com:oselin/MDS.git
