@@ -1,73 +1,122 @@
-import sys
+import os 
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, TextSubstitution
+from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+
 
 def generate_launch_description():
     ld = LaunchDescription()
 
-    # Read the number of drones contained in the simulation
-    n_drones_arg = DeclareLaunchArgument(
-        'n_drones',
-        default_value='2',
-        description='Ciao'
-    )
-    ld.add_action(n_drones_arg)
+    package_name = 'mavros'
+    package_share_directory = get_package_share_directory(package_name)
 
-    print("LaunchConfiguration('n_drones')")
-    print(LaunchConfiguration('n_drones')[0])
-    print(TextSubstitution(text=LaunchConfiguration('n_drones')))
-    n_drones = int(LaunchConfiguration('n_drones'))
-
-    print("Prova")
-    print(n_drones)
-    # Default configutaions
     apm_pluginlists_file = '/opt/ros/humble/share/mavros/launch/apm_pluginlists.yaml'
     apm_config_file = '/opt/ros/humble/share/mavros/launch/apm_config.yaml'
     
-    # Load a mavros nodes for each drone 
-    # Command: ros2 run mavros mavros_node --ros-args -p fcu_url:=udp://127.0.0.1:14561@14565 -p target_system_id:=2 -p target_component_id:=1 -p fcu_protocol:=v2.0 -r __ns:=/drone2
+    # ros2 run mavros mavros_node --ros-args -p fcu_url:=udp://127.0.0.1:14561@14565 -p target_system_id:=2 -p target_component_id:=1 -p fcu_protocol:=v2.0 -r __ns:=/drone2
+    mavros_node1 = Node(
+        package='mavros',
+        executable= 'mavros_node',
+        # name="mavros",
+        parameters=[
+            #{'fcu_url': 'tcp://localhost:5763@5762'},
+            {'fcu_url': 'udp://127.0.0.1:14551@14555'},
+            #{'gcs_url' : 'udp://@'},
+            #{'gcs_url': ''},
+            {'target_system_id': 1},
+            {'target_component_id': 1},
+            {'fcu_protocol': 'v2.0'},
+            apm_pluginlists_file,
+            apm_config_file,
+        ],
 
-    # for i in range(1, n_drones+1):
-    #     # the first has to be 14551, but i starts from 1..
-    #     udp_port = 14541 + i*10 
-    #     ld = Node(
-    #         package='mavros',
-    #         executable= 'mavros_node',
-    #         # name="mavros",
-    #         parameters=[
-    #             #{'fcu_url': 'tcp://localhost:5763@5762'},
-    #             {'fcu_url': 'udp://127.0.0.1:%i@%i' % (udp_port, udp_port+4)},
-    #             #{'gcs_url' : 'udp://@'},
-    #             #{'gcs_url': ''},
-    #             {'target_system_id': i},
-    #             {'target_component_id': 1},
-    #             {'fcu_protocol': 'v2.0'},
-    #             apm_pluginlists_file,
-    #             apm_config_file,
-    #         ],
+        namespace='/drone1',
+        output='screen',
+        respawn=True,
+        # remappings=[
+        #     ("*/", "/mavros")
+        # ]
+    )
 
-    #         namespace='/drone%i' % i,
-    #         output='screen',
-    #         respawn=True,
-    #         # remappings=[
-    #         #     ("*/", "/mavros")
-    #         # ]
-    #     )
+    # mavros_node2 = Node(
+    #     package='mavros',
+    #     executable='mavros_node',
+    #     # name='mavros',
+    #     parameters=[
+    #         {'fcu_url': 'udp://127.0.0.1:14561@14565'},
+    #         # {'gcs_url': ''},
+    #         {'target_system_id': 2},
+    #         {'target_component_id': 1},
+    #         {'fcu_protocol': 'v2.0'}
+    #     ],
+    #     namespace='/drone2',
+    #     output='screen',
+    #     respawn=True
+    # )
+
+    # mavros_node3 = Node(
+    #     package='mavros',
+    #     executable='mavros_node',
+    #     # name='mavros',
+    #     parameters=[
+    #         {'fcu_url': 'udp://127.0.0.1:14571@14575'},
+    #         # {'gcs_url': ''},
+    #         {'target_system_id': 3},
+    #         {'target_component_id': 1},
+    #         {'fcu_protocol': 'v2.0'}
+    #     ],
+    #     namespace='/drone3',
+    #     output='screen',
+    #     respawn=True
+    # )
+
+    # Load parameter files for each node separately
+    # pluginlists_cmd1 = ExecuteProcess(
+    #     cmd=['ros2', 'param', 'load', '/drone1', os.path.join(package_share_directory, 'launch/apm_pluginlists.yaml')],
+    #     output='screen'
+    # )
+    pluginlists_cmd1 = ExecuteProcess(
+        cmd=['ros2', 'param', 'load', '/drone1', os.path.join(package_share_directory, 'launch/apm_pluginlists.yaml')],
+        output='screen'
+    )
+
+    config_cmd1 = ExecuteProcess(
+        cmd=['ros2', '-params-file', os.path.join(package_share_directory, 'launch/apm_config.yaml')],
+        output='screen'
+    )
+
+    pluginlists_cmd2 = ExecuteProcess(
+        cmd=['ros2', 'param', 'load', '/drone2/mavros', os.path.join(package_share_directory, 'launch/apm_pluginlists.yaml')],
+        output='screen'
+    )
+
+    config_cmd2 = ExecuteProcess(
+        cmd=['ros2', 'param', 'load', '/drone2/mavros', os.path.join(package_share_directory, 'launch/apm_config.yaml')],
+        output='screen'
+    )
+
+    pluginlists_cmd3 = ExecuteProcess(
+        cmd=['ros2', 'param', 'load', '/drone3/mavros', os.path.join(package_share_directory, 'launch/apm_pluginlists.yaml')],
+        output='screen'
+    )
+
+    config_cmd3 = ExecuteProcess(
+        cmd=['ros2', 'param', 'load', '/drone3/mavros', os.path.join(package_share_directory, 'launch/apm_config.yaml')],
+        output='screen'
+    )
+
+    ld.add_action(mavros_node1)
+    # ld.add_action(pluginlists_cmd1)
+    # ld.add_action(config_cmd1)
+
+    # ld.add_action(mavros_node2)
+    # ld.add_action(pluginlists_cmd2)
+    # ld.add_action(config_cmd2)
+
+    # ld.add_action(mavros_node3)
+    # ld.add_action(pluginlists_cmd3)
+    # ld.add_action(config_cmd3)
 
     return ld
-
-
-
-
-
-
-
-
-
-
-    # package_name = 'mavros'
-    # package_share_directory = get_package_share_directory(package_name)
