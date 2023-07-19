@@ -78,10 +78,10 @@
       <uri>model://sun</uri>
     </include>
   </world>
-<model name="drone0">
+<model name="drone1">
 		<pose>0 0 0 0 0 0</pose>
 		<include>
-			<uri>model://drone0</uri>
+			<uri>model://drone1</uri>
 		</include>
 	</model>
 </sdf>

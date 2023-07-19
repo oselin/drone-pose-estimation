@@ -34,7 +34,7 @@ def generate_world(drones_number):
     root = tree.getroot()
 
     # Add the right number of drones
-    for i in range(drones_number):
+    for i in range(1, drones_number+1):
         print(f"Adding drone to world {i+1}/{drones_number}")
         root.append(new_drone(i))
 

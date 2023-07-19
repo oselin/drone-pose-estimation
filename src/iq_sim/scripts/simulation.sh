@@ -27,6 +27,8 @@ python3 $SCRIPTPATH/generate_gazebo_parms.py $1
 echo
 python3 $SCRIPTPATH/generate_models.py $1
 
+ros2 launch iq_sim multi_drone.launch.py
+
 # Launch the ArduCopter sessions
 for ((i = 0; i < $1; i++)); do
     drone_idx=$((i + 1))
