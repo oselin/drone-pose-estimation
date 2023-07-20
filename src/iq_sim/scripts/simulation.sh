@@ -26,13 +26,19 @@ python3 $SCRIPTPATH/generate_world.py $1
 echo
 python3 $SCRIPTPATH/generate_gazebo_parms.py $1
 
-# Generate the corrnoiseect models
+# Generate the correct models
 echo
 python3 $SCRIPTPATH/generate_models.py $1
 
+# Update the Ardupilot vehicleinfo.py
+echo
+echo "Updating vehicleinfo.py details..."
+python3 $SCRIPTPATH/generate_vehicleinfo.py $1
+generate_vehicleinfo.py $1
+
 # Go back to ws folder
 echo 
-echo 'Building the project with the new files..'
+echo 'Building the project with the new files...'
 cd $SCRIPTPATH/../../..
 colcon build
 
