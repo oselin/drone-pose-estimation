@@ -35,8 +35,8 @@ def generate_world(drones_number):
 
     # Add the right number of drones
     for i in range(1, drones_number+1):
-        print(f"Adding drone to world {i+1}/{drones_number}")
-        root.find(".//world").append(new_drone(i))
+        print(f"Adding drone to world {i}/{drones_number}")
+        root.find('.//world').append(new_drone(i))
 
     # Save the modified XML 
     print("Saving world to file")
