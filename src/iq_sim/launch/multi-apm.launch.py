@@ -3,7 +3,6 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-
 def generate_nodes(context, *args, **kwargs):
     n_drones =  LaunchConfiguration('n_drones').perform(context)
 
@@ -17,6 +16,7 @@ def generate_nodes(context, *args, **kwargs):
         # the first has to be 14551, but i starts from 1..
         udp_port_in = 14541 + i*10
         udp_port_out = udp_port_in + 4
+
         nodes.append(Node(
             package='mavros',
             executable='mavros_node',
@@ -29,7 +29,7 @@ def generate_nodes(context, *args, **kwargs):
                 apm_config_file,
             ],
             namespace=f'/drone{i}',
-            output='screen',
+            output={'both': 'log'},
             respawn=True,
         ))
 
@@ -37,6 +37,7 @@ def generate_nodes(context, *args, **kwargs):
 
 
 def generate_launch_description():
+
     return LaunchDescription([
 
         # Declare the 'n_drones' command-line argument with default value 1

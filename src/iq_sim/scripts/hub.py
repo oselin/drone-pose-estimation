@@ -19,11 +19,11 @@ class Hub(Node):
             msg = Float32MultiArray()
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
-            self.get_logger().info('Distances for drone%i: %s' % (i+1, str(msg.data)))
+            #self.get_logger().info('Distances for drone%i: %s' % (i+1, str(msg.data)))
 
     def pose_reader_callback(self, received_msg, index):
         pos = received_msg.pose.position
-        self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
+        #self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
 
         self.coords[:, index] = [pos.x, pos.y, pos.z]
     
@@ -50,7 +50,7 @@ class Hub(Node):
         self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
         self.noise = self.get_parameter('noise').get_parameter_value().string_value
 
-        self.get_logger().info("Received parameters:\n \tn_drones:\t%i\n\tnoise:\t\t%s" % (self.n_drones, self.noise))
+        #self.get_logger().info("Received parameters:\n \tn_drones:\t%i\n\tnoise:\t\t%s" % (self.n_drones, self.noise))
 
         ## Main components
         self.distances = np.ones((self.n_drones, self.n_drones))
