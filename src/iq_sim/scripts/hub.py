@@ -26,6 +26,9 @@ class Hub(Node):
         #self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
 
         self.coords[:, index] = [pos.x, pos.y, pos.z]
+        print("TOPIC:", index+1)
+        print(self.coords)
+        exit(1)
     
     def compute_distances(self):
         X = self.coords
@@ -43,21 +46,18 @@ class Hub(Node):
         super().__init__('hub')
         self.get_logger().info("Node to read the coordinates and write the distances")
 
-        ## Parameters
+        ## ROS parameters
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
-        self.declare_parameter('noise', rclpy.Parameter.Type.STRING)
+        self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
 
+        # Class attributes
         self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
-        self.noise = self.get_parameter('noise').get_parameter_value().string_value
+        self.noise    = self.get_parameter('noise').get_parameter_value().string_value
 
-        #self.get_logger().info("Received parameters:\n \tn_drones:\t%i\n\tnoise:\t\t%s" % (self.n_drones, self.noise))
-
-        ## Main components
         self.distances = np.ones((self.n_drones, self.n_drones))
-        self.coords = np.ones((3, self.n_drones))
+        self.coords    = np.ones((3, self.n_drones))
 
-        ## Topics
-        # read the coordinates of all the drones and store them
+        # Subscribe to the topic
         for i in range(self.n_drones):
             print("Topic registered to %s " %str(POSE_TOPIC_TEMPLATE(i+1)))
             self.create_subscription(

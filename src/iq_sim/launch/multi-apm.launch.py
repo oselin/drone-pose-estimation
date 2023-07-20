@@ -16,7 +16,7 @@ def generate_nodes(context, *args, **kwargs):
         # the first has to be 14551, but i starts from 1..
         udp_port_in = 14541 + i*10
         udp_port_out = udp_port_in + 4
-
+        print(f"drone {i}")
         nodes.append(Node(
             package='mavros',
             executable='mavros_node',
