@@ -56,27 +56,11 @@ done
 # Launch mavros
 echo
 echo 'Launching an instance of mavros for each node'
+gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch.py n_drones:=$1"
 
-# 1. close to working way: launch a mavros instance for each drone 
-udp_port_base=14541
-for ((i=1;i<=$1;i++)); do
-    udp_port_in=$((udp_port_base + i * 10))
-    udp_port_out=$((udp_port_in + 4))
-    ros2 run mavros mavros_node --ros-args \
-        -p fcu_url:=udp://127.0.0.1:$udp_port_in@$udp_port_out \
-        -p target_system_id:=$i \
-        -p target_component_id:=1 \
-        -p fcu_protocol:=v2.0 \
-        -r __ns:=/drone$i \
-        --params-file /opt/ros/humble/share/mavros/launch/apm_pluginlists.yaml \
-        --params-file /opt/ros/humble/share/mavros/launch/apm_config.yaml &
-    # note: no need to define the node name thanks to the ns
-    echo "Launching mavros [$drone_idx/$1]"
-done
-# 2. alternative way (it does not work as the launcher does not know n_drones)
-# gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch.py"
-
-# Launch ROS2 node to calculate the distances from the drones' coordinates
+# # Launch ROS2 node to calculate the distances from the drones' coordinates
+echo
+echo 'Launching the hub...'
 gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1 -p noise:='none' "
 
-#ros2 launch iq_sim MDS # ehehe
+# #ros2 launch iq_sim MDS # ehehe
