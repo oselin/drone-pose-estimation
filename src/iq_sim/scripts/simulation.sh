@@ -34,7 +34,6 @@ python3 $SCRIPTPATH/generate_models.py $1
 echo
 echo "Updating vehicleinfo.py details..."
 python3 $SCRIPTPATH/generate_vehicleinfo.py $1
-generate_vehicleinfo.py $1
 
 # Go back to ws folder
 echo 
