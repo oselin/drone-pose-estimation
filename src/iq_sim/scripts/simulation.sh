@@ -43,7 +43,9 @@ colcon build
 
 # Launch populated world
 echo
-gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-drone.launch.py"
+gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-drone.launch.py" &
+
+sleep 20
 
 # Launch the ArduCopter sessions
 for ((i = 0; i < $1; i++)); do
@@ -52,6 +54,7 @@ for ((i = 0; i < $1; i++)); do
     echo "Launching Ardupilot session [$drone_idx/$1]"
 done
 
+sleep 120
 # Launch mavros
 echo
 echo 'Launching an instance of mavros for each node'

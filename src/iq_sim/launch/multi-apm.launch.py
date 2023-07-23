@@ -16,12 +16,12 @@ def generate_nodes(context, *args, **kwargs):
         # the first has to be 14551, but i starts from 1..
         udp_port_in = 14541 + i*10
         udp_port_out = udp_port_in + 4
-        print(f"drone {i}")
+
         nodes.append(Node(
             package='mavros',
             executable='mavros_node',
             parameters=[
-                {'fcu_url': f'udp://127.0.0.1:{udp_port_in}@%{udp_port_out}'},
+                {'fcu_url': f'udp://127.0.0.1:{udp_port_in}@{udp_port_out}'},
                 {'target_system_id': i},
                 {'target_component_id': 1},
                 {'fcu_protocol': 'v2.0'},
@@ -29,7 +29,7 @@ def generate_nodes(context, *args, **kwargs):
                 apm_config_file,
             ],
             namespace=f'/drone{i}',
-            output={'both': 'log'},
+            output= 'screen', #{'both': 'log'},
             respawn=True,
         ))
 

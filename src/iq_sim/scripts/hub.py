@@ -6,6 +6,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from mavros_msgs.srv import SetMode, CommandBool
+import tf2_ros
 
 from std_msgs.msg import Float32MultiArray
 
@@ -24,11 +25,24 @@ class Hub(Node):
     def pose_reader_callback(self, received_msg, index):
         pos = received_msg.pose.position
         #self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
-
         self.coords[:, index] = [pos.x, pos.y, pos.z]
-        print("TOPIC:", index+1)
-        print(self.coords)
-        exit(1)
+        print(f"Drone {index+1}:",self.coords[:,index])
+
+        tf_buffer = tf2_ros.Buffer()
+        tf_lister = tf2_ros.TransformListener(tf_buffer)
+
+        try:
+            # Get the transformation from "base_link" (local) to "map" (global)
+            transform = tf_buffer.lookup_transform("map", "base_link", rclpy.Time(), rclpy.Duration(1.0))
+            
+            # Transform local position to global position
+            global_position = tf2_ros.do_transform_pose(PoseStamped(pose=received_msg), transform).pose.position
+
+            # Now, global_position contains the absolute coordinates (x, y, z) of the drone
+            print("Global position: x={}, y={}, z={}".format(global_position.x, global_position.y, global_position.z))
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+            rclpy.logwarn("TF transformation not available!")
+
     
     def compute_distances(self):
         X = self.coords
@@ -63,7 +77,7 @@ class Hub(Node):
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
-                lambda msg: self.pose_reader_callback(msg, i),
+                lambda msg, i=i: self.pose_reader_callback(msg, i),
                 qos_profile_system_default
             )
 
