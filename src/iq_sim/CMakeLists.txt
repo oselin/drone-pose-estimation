@@ -31,6 +31,10 @@ install(DIRECTORY
 
 install(PROGRAMS
   scripts/hub.py
+  scripts/fly.py
+  scripts/fly_2.py
+  scripts/py_gnc_functions.py
+  scripts/PrintColours.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
