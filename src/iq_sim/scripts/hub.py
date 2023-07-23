@@ -25,25 +25,10 @@ class Hub(Node):
     def pose_reader_callback(self, received_msg, index):
         pos = received_msg.pose.position
         #self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
-        self.coords[:, index] = [pos.x, pos.y, pos.z]
+        self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
         print(f"Drone {index+1}:",self.coords[:,index])
 
-        tf_buffer = tf2_ros.Buffer()
-        tf_lister = tf2_ros.TransformListener(tf_buffer)
-
-        try:
-            # Get the transformation from "base_link" (local) to "map" (global)
-            transform = tf_buffer.lookup_transform("map", "base_link", rclpy.Time(), rclpy.Duration(1.0))
             
-            # Transform local position to global position
-            global_position = tf2_ros.do_transform_pose(PoseStamped(pose=received_msg), transform).pose.position
-
-            # Now, global_position contains the absolute coordinates (x, y, z) of the drone
-            print("Global position: x={}, y={}, z={}".format(global_position.x, global_position.y, global_position.z))
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-            rclpy.logwarn("TF transformation not available!")
-
-    
     def compute_distances(self):
         X = self.coords
         e = np.ones(X.shape[1]).reshape(-1,1)
@@ -71,6 +56,9 @@ class Hub(Node):
         self.distances = np.ones((self.n_drones, self.n_drones))
         self.coords    = np.ones((3, self.n_drones))
 
+        # Create tf2 Transformation instances
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_lister = tf2_ros.TransformListener(self.tf_buffer, self)
         # Subscribe to the topic
         for i in range(self.n_drones):
             print("Topic registered to %s " %str(POSE_TOPIC_TEMPLATE(i+1)))
