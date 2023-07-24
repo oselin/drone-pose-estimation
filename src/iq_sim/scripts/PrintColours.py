@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 CEND = '\33[0m'
 
 CBOLD = '\33[1m'

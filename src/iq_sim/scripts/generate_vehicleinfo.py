@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import re, sys, os
 
 # Define the file name

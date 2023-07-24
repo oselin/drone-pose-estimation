@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os, sys
 
 folder_path = os.path.expanduser("~/ardupilot/Tools/autotest/default_params/")
