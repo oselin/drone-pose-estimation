@@ -6,9 +6,11 @@ import matplotlib.animation as animation
 import numpy as np
 from sklearn.decomposition import PCA
 import threading, warnings, matplotlib
-# matplotlib.use('Qt5Cairo')
-matplotlib.use('TkAgg')
+warnings.simplefilter("ignore", UserWarning)
 
+
+
+    
 
 class Plot():
 
@@ -22,7 +24,7 @@ class Plot():
         else: f.canvas.manager.window.move(x, y) # works for QT and GTK
 
 
-    def __initialize_figure(self, title, x, y, disable_toolbar=True):
+    def __initialize_figure(self, title, x, y):
         """
         Initialize the figure frame, setting title and location.
         Parameters:
@@ -33,6 +35,9 @@ class Plot():
         Return:
             figure and axis object
         """
+
+        # Disable toolbar
+        if (self.__disable_toolbar): matplotlib.rcParams['toolbar'] = 'None'
         # Initialize the figure
         fig = plt.figure(figsize=(4, 4))
         fig.suptitle(title)
@@ -45,10 +50,7 @@ class Plot():
             ax.xaxis.set_pane_color("white", alpha=None)
             ax.yaxis.set_pane_color("white", alpha=None)
             ax.zaxis.set_pane_color("white", alpha=None)
-            # self.__axis_mds.view_init(50, -50)
-
-        # Disable toolbar
-        #if (disable_toolbar): fig.canvas.toolbar.setVisible(False)
+            # ax.view_init(50, -50)
 
         # Move the window 
         self.__move_figure(fig, x, y)
@@ -97,7 +99,8 @@ class Plot():
                                                     frames=None, interval=self.__frequency, cache_frame_data=False)
         plt.show() 
 
-    def __init__(self, mode='2D', display_MDS=True, display_WLP=True, frequency=200, reduction_method='PCA'):
+
+    def __init__(self, mode='2D', display_MDS=True, display_WLP=True, frequency=200, reduction_method='PCA', disable_toolbar=True):
         """
         Class to plot data.
         Parameters:
@@ -105,7 +108,14 @@ class Plot():
             - display_MDS: show MDS data. True by default
             - display_WLP: show WLP data. True by default
             - frequency: time between each plot update        
+            - reduction_method: only for 2D mode - method for dimensionality reduction
+            - disable_toolbar: enable or disable plot toolbar (navigation panel)
         """
+        try:
+            matplotlib.use('TkAgg')
+        except:
+            raise SystemError("Impossible to start class with TkAgg as X-server")
+
         if (mode not in ['2D', '3D']): raise ValueError(f"mode parameter must be either '2D' or '3D', not {mode}.")
 
         # Set the class attributes
@@ -113,6 +123,7 @@ class Plot():
         self.__display_MDS = display_MDS
         self.__display_WLP = display_WLP
         self.__frequency = frequency
+        self.__disable_toolbar = disable_toolbar
 
         self.__true_coords, self.__MDS_coords, self.__WLP_coords = None, None, None
 
@@ -120,7 +131,6 @@ class Plot():
         if (self.__mode == '2D'):
             if (reduction_method == 'PCA'): self.__2Dmethod = PCA(n_components=2)
             else: raise ValueError(f"reduction_method must be PCA, not {reduction_method}")
-        warnings.simplefilter("ignore", UserWarning)
 
 
     def start(self):
@@ -163,10 +173,10 @@ class Plot():
 #     import time
 #     # Initialize the class
 #     test = Plot(mode='2D', display_MDS=True, display_WLP=True)
-# 
+
 #     # Start the thread
 #     test.start()
-#
+
 #     # Update data over time
 #     while True:
 #         data1 = np.random.uniform(low=-5, high=5, size=(3,10))
