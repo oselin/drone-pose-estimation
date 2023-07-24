@@ -18,14 +18,14 @@ from mavros_msgs.srv import SetMode
 from PrintColours import *
 
 class DroneController(Node):
-    def __init__(self):
-        super().__init__('drone_controller')
-        self.setpoint_pub = self.create_publisher(PoseStamped, '/drone1/setpoint_position/local', 10)
-        self.cmd_vel_pub = self.create_publisher(TwistStamped, '/drone1/setpoint_velocity/cmd_vel', 10)
-        self.arm_client = self.create_client(CommandBool, '/drone1/cmd/arming')
-        self.takeoff_client = self.create_client(CommandTOL, '/drone1/cmd/takeoff')
-        self.land_client = self.create_client(CommandTOL, '/drone1/cmd/land')
-        self.mode_client = self.create_client(SetMode, '/drone1/set_mode')
+    def __init__(self,id):
+        super().__init__('drone_controller' + id)
+        self.setpoint_pub = self.create_publisher(PoseStamped, '/drone' + id + '/setpoint_position/local', 10)
+        self.cmd_vel_pub = self.create_publisher(TwistStamped, '/drone' + id + '/setpoint_velocity/cmd_vel', 10)
+        self.arm_client = self.create_client(CommandBool, '/drone' + id + '/cmd/arming')
+        self.takeoff_client = self.create_client(CommandTOL, '/drone' + id + '/cmd/takeoff')
+        self.land_client = self.create_client(CommandTOL, '/drone' + id + '/cmd/land')
+        self.mode_client = self.create_client(SetMode, '/drone' + id + '/set_mode')
 
     def send_setpoint_position(self, x, y, z):
         pose_msg = PoseStamped()
@@ -68,7 +68,7 @@ class DroneController(Node):
         takeoff_srv.min_pitch = 0.0
 
         future = self.takeoff_client.call_async(takeoff_srv)
-        rclpy.spin_until_future_complete(self, future)        
+        #rclpy.spin_until_future_complete(self, future)        
         if future.result():
             self.get_logger().info(CGREEN2 + "Takeoff successful" + CEND)
             return 0
@@ -85,8 +85,8 @@ class DroneController(Node):
         takeoff_srv.longitude = 0.0
         takeoff_srv.altitude = 0.0
         takeoff_srv.min_pitch = 0.0
-        future = self.land_client.call(takeoff_srv)
-        rclpy.spin_until_future_complete(self, future)
+        future = self.land_client.call_async(takeoff_srv)
+        #rclpy.spin_until_future_complete(self, future)
         if future.result():
             self.get_logger().info(CGREEN2 + "Land successful" + CEND)
             return 0
@@ -100,7 +100,7 @@ class DroneController(Node):
         request = SetMode.Request()
         request.custom_mode = mode
         future = self.mode_client.call_async(request)
-        rclpy.spin_until_future_complete(self, future)
+        #rclpy.spin_until_future_complete(self, future)
         if future.result() is not None:
             if future.result().mode_sent:
                 self.get_logger().info('SetMode successful')
@@ -111,41 +111,47 @@ class DroneController(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    drone_controller = DroneController()
-    drone_controller.set_mode("GUIDED")
-    
+    drone_1_ctrl = DroneController("1")
+    drone_2_ctrl = DroneController("2")
 
-    # Arming and setting the mode to OFFBOARD
-    drone_controller.arm()
+    
+    drone_1_ctrl.set_mode('GUIDED')
+    drone_2_ctrl.set_mode('GUIDED')
     
     time.sleep(5)
     
-    drone_controller.takeoff(10.0)
+    # Arming and setting the mode to OFFBOARD
+    drone_1_ctrl.arm()
+    drone_2_ctrl.arm() 
     
-    time.sleep(10)
+    time.sleep(5)
     
-    # Move the drone by sending commands
-    drone_controller.send_setpoint_position(4.0, 0.0, 2.0)  # Move to (x=1, y=0, z=2)
-    
-    time.sleep(10)
-    
-    
-    n = 0
-    while n<5:
-        drone_controller.send_setpoint_velocity(0.2, 0.0, 0.0, 4.0)  # Move with linear z velocity of 1 m/s
-        n += 1
-    time.sleep(10)
-    
-    # todo:
-    # - check sul raggiungimento del punto 
-    # - missione come serie di punti da raggiungere
-    
-    
-    drone_controller.land()
-    
-    rclpy.spin(drone_controller)
+    drone_1_ctrl.takeoff(5.0)
+    drone_2_ctrl.takeoff(5.0) 
 
-    drone_controller.destroy_node()
+    # Move the drone by sending commands
+    drone_1_ctrl.send_setpoint_position(1.0, 0.0, 2.0)  
+    drone_2_ctrl.send_setpoint_position(3.0, 0.0, 2.0)  
+    
+    time.sleep(10)
+    
+    #drone_controller.send_setpoint_velocity(0.0, 0.0, 1.0, 0.0)  # Move with linear z velocity of 1 m/s
+
+    drone_1_ctrl.land()
+    drone_2_ctrl.land()
+    
+    time.sleep(5)
+    
+    rclpy.spin(drone_1_ctrl)
+    rclpy.spin(drone_2_ctrl)
+
+    drone_1_ctrl.destroy_node()
+    drone_2_ctrl.destroy_node()
+
+    drone_1_ctrl.destroy_node()
+    drone_2_ctrl.destroy_node()
+    
+    
     rclpy.shutdown()
 
 if __name__ == '__main__':
