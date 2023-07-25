@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import numpy as np
 from sklearn.decomposition import PCA
 import threading, warnings, matplotlib
+from matplotlib.patches import Ellipse
 warnings.simplefilter("ignore", UserWarning)
 
 
@@ -54,6 +55,24 @@ class Plot():
 
         return fig, ax
 
+    
+    def __get_data(self, frame):
+        """
+        Return axis and coordinates for the given frame.
+        Parameters:
+            - frame: 'MDS' or 'WLP'
+        """
+        if (frame == 'MDS'): return self.__axis_MDS, self.__MDS_coords, self.__MDS_cov
+        else: return self.__axis_WLP, self.__WLP_coords, self.__WLP_cov
+
+    def __data_to_2D(self, data):
+        if (self.__reduction_method == 'PCA'):
+            pca = PCA(n_components=2)
+            return pca.fit_transform(data) 
+        
+        elif (self.__reduction_method == 'xy'):
+            return data[:2]
+
 
     def __update_plot(self, frame):
         """
@@ -61,26 +80,61 @@ class Plot():
         Parameters:
             - frame: MDS or WLP to choose the data
         """
-
-        def get_data(f):
-            if (f == 'MDS'): return self.__axis_MDS, self.__MDS_coords
-            else: return self.__axis_WLP, self.__WLP_coords
-
-        axis, data = get_data(frame)
+        axis, data, _ = self.__get_data(frame)
         
         # Clear the previous plot
         axis.clear()
         
         if (data is not None): # data might not be initialized yet
             if (self.__mode == '2D'):
-                d = self.__2Dmethod.fit_transform(data) # reduce to 2D
-                t = self.__2Dmethod.fit_transform(self.__true_coords) # reduce to 2D
+                t = self.__data_to_2D(self.__true_coords) # reduce to 2D
+                d = self.__data_to_2D(data)               # reduce to 2D
                 axis.scatter(self.__true_coords[0],  self.__true_coords[1], c="red"  ) # Plot true coordinates
                 axis.scatter(d[0], d[1], c="black") 
+
+                if (self.__display_cov): self.__draw_covariance(frame=frame, confidence=0.95)
             else:
                 axis.scatter(self.__true_coords[0],  self.__true_coords[1],  self.__true_coords[2],  c="red"  ) # Plot true coordinates
                 axis.scatter(data[0], data[1], data[2],  c="black")
     
+    
+    def __draw_covariance(self, frame: str, confidence=0.95):
+        """
+        Draw the covariance ellipse. Note: it works only for 2D plots.
+        Parameters:
+            - frame: either MDS or WLP
+            - confidence: confidence level to be plotted
+        """
+
+        if (self.__mode != '2D'): return
+
+        # Get points and axis for the given frame
+        axis, points, cov_matrix = self.__get_data(frame=frame)
+
+        # Project to 2D
+        points = self.__data_to_2D(points)
+
+        for i in range(cov_matrix.shape[1]):
+
+            # Get the i-th covariance matrix
+            cov_i = cov_matrix[:,i].reshape(3,3)
+
+            # Get the i-th point
+            point_i = points[:,i]
+
+            # 1 - Decompose the covariance matrix
+            eigenvalues, eigenvectors = np.linalg.eigh(cov_i)
+
+            # 2- Determine major and minor axes
+            confidence_level = np.sqrt(eigenvalues) * np.sqrt(-2 * np.log(1 - confidence))
+            major_axis_length = 2 * confidence_level[-1]
+            minor_axis_length = 2 * confidence_level[-2]
+
+            # 3 - Plot the ellipse
+            ellipse = Ellipse(xy=point_i, width=major_axis_length, height=minor_axis_length, edgecolor='b', fc='None', lw=2)
+
+            axis.add_patch(ellipse)
+
 
     def __plot_thread(self):
 
@@ -97,13 +151,16 @@ class Plot():
         plt.show() 
 
 
-    def __init__(self, mode='2D', display_MDS=True, display_WLP=True, frequency=200, reduction_method='PCA', disable_toolbar=True):
+    def __init__(self, mode='2D', display_MDS=True, display_WLP=True, 
+                    frequency=200, reduction_method='PCA', disable_toolbar=True,
+                    display_covariance=False):
         """
         Class to plot data.
         Parameters:
             - mode: 2D and 3D options available
             - display_MDS: show MDS data. True by default
             - display_WLP: show WLP data. True by default
+            - display_covariance: plot covariance ellipse. False by default
             - frequency: time between each plot update        
             - reduction_method: only for 2D mode - method for dimensionality reduction
             - disable_toolbar: enable or disable plot toolbar (navigation panel)
@@ -113,22 +170,29 @@ class Plot():
         except:
             raise SystemError("Impossible to start class with TkAgg as X-server")
 
+        # Verify consistency of parameters
         if (mode not in ['2D', '3D']): raise ValueError(f"mode parameter must be either '2D' or '3D', not {mode}.")
 
+        if (mode == '3D' and display_covariance): raise ValueError("Covariance can be plotted only in 2D, not 3D.")
+
+        if (not (display_MDS or display_WLP) and display_covariance): raise ValueError("At least one method must be plotted to plot covariance.")
+
+        if (not frequency): raise ValueError("Frequency value must be greater than zero.")
+
+        if (reduction_method not in ['PCA', 'xy']): raise ValueError(f"reduction_method must be either 'PCA' or 'xy', not {reduction_method}.")
+        
+        
         # Set the class attributes
         self.__mode = mode
         self.__display_MDS = display_MDS
         self.__display_WLP = display_WLP
         self.__frequency = frequency
         self.__disable_toolbar = disable_toolbar
+        self.__display_cov = display_covariance
+        self.__reduction_method = reduction_method
 
         self.__true_coords, self.__MDS_coords, self.__WLP_coords, self.__MDS_cov, self.__WLP_cov  \
                                                                             = None, None, None, None, None
-
-        # Choose dimensionality reduction method
-        if (self.__mode == '2D'):
-            if (reduction_method == 'PCA'): self.__2Dmethod = PCA(n_components=2)
-            else: raise ValueError(f"reduction_method must be PCA, not {reduction_method}")
 
 
     def start(self):
@@ -160,7 +224,7 @@ class Plot():
             else: raise ValueError("MDS_coords is not of type np.ndarray or MDS was not set to visible during class initialization")
 
         if (MDS_cov is not None):    # Covariance update
-            if (type(MDS_cov) == np.ndarray and self.__display_MDS): self.__MDS_cov = MDS_cov
+            if (type(MDS_cov) == np.ndarray and self.__display_MDS and self.__display_cov): self.__MDS_cov = MDS_cov
             else: raise ValueError("MDS_cov is not of type np.ndarray or MDS was not set to visible during class initialization")
 
         if (WLP_coords is not None): # Mean update
@@ -168,7 +232,7 @@ class Plot():
             else: raise ValueError("WLP_coords is not of type np.ndarray or WLP was not set to visible during class initialization")
 
         if (WLP_cov is not None):    # Covariance update
-            if (type(MDS_cov) == np.ndarray and self.__display_WLP): self.__WLP_cov = WLP_cov
+            if (type(MDS_cov) == np.ndarray and self.__display_WLP and self.__display_cov): self.__WLP_cov = WLP_cov
             else: raise ValueError("WLP_cov is not of type np.ndarray or WLP was not set to visible during class initialization")
 
 
@@ -180,7 +244,7 @@ class Plot():
 # if __name__ == '__main__':
 #     import time
 #     # Initialize the class
-#     test = Plot(mode='2D', display_MDS=True, display_WLP=True)
+#     test = Plot(mode='2D', display_MDS=True, display_WLP=True, )
 
 #     # Start the thread
 #     test.start()
@@ -191,5 +255,5 @@ class Plot():
 #         data2 = np.random.uniform(low=-2, high=2, size=(3,10))
 #         data3 = np.random.uniform(low=-2, high=2, size=(3,10))
 
-#         test.update(true_coords=data1, MDS_coords=data2, WLP_coords=data3)
+#         test.update(true_coords=data1, MDS_coords=data2, WLP_coords=data3, MDS_cov=None, WLP_cov=None)
 #         time.sleep(2)
