@@ -9,9 +9,6 @@ import threading, warnings, matplotlib
 warnings.simplefilter("ignore", UserWarning)
 
 
-
-    
-
 class Plot():
 
     def __move_figure(self, f, x, y):
@@ -125,7 +122,8 @@ class Plot():
         self.__frequency = frequency
         self.__disable_toolbar = disable_toolbar
 
-        self.__true_coords, self.__MDS_coords, self.__WLP_coords = None, None, None
+        self.__true_coords, self.__MDS_coords, self.__WLP_coords, self.__MDS_cov, self.__WLP_cov  \
+                                                                            = None, None, None, None, None
 
         # Choose dimensionality reduction method
         if (self.__mode == '2D'):
@@ -141,29 +139,39 @@ class Plot():
         self.plot_thread.start()
 
 
-    def update(self, true_coords: np.ndarray, MDS_coords: np.ndarray = None, WLP_coords : np.ndarray = None):
+    def update(self, true_coords: np.ndarray, 
+                    MDS_coords: np.ndarray = None, WLP_coords : np.ndarray = None,
+                    MDS_cov : np.ndarray = None, WLP_cov : np.ndarray = None):
         """
         Update the stored data for the respective plot.
         Parameters:
             - true_coords: true coordinates of points
             - MDS_coords: coordinates estimated via MDS algorithm
             - WLP_coords: corrdinates estimated via WLP algorithm
+            - MDS_cov: covariance matrix associated to each point, estimated via MDS algorithm
+            - WLP_cov: covariance matrix associated to each point, estimated via WLP algorithm
         """
 
         assert type(true_coords) == np.ndarray
         self.__true_coords = true_coords
-
-        if (self.__display_MDS):
-            if (type(MDS_coords) == np.ndarray): self.__MDS_coords = MDS_coords
-            else: raise ValueError("MDS_coords is not of type np.ndarray")
-        else:
-            raise ValueError("Display MDS data was set to False. Impossible to update None object")
         
-        if (self.__display_WLP):
-            if (type(WLP_coords) == np.ndarray): self.__WLP_coords = WLP_coords
-            else: raise ValueError("WLP_coords is not of type np.ndarray")
-        else:
-            raise ValueError("Display WLP data was set to False. Impossible to update None object")
+        if (MDS_coords is not None): # Mean update
+            if (type(MDS_coords) == np.ndarray and self.__display_MDS): self.__MDS_coords = MDS_coords
+            else: raise ValueError("MDS_coords is not of type np.ndarray or MDS was not set to visible during class initialization")
+
+        if (MDS_cov is not None):    # Covariance update
+            if (type(MDS_cov) == np.ndarray and self.__display_MDS): self.__MDS_cov = MDS_cov
+            else: raise ValueError("MDS_cov is not of type np.ndarray or MDS was not set to visible during class initialization")
+
+        if (WLP_coords is not None): # Mean update
+            if (type(WLP_coords) == np.ndarray and self.__display_WLP): self.__WLP_coords = WLP_coords
+            else: raise ValueError("WLP_coords is not of type np.ndarray or WLP was not set to visible during class initialization")
+
+        if (WLP_cov is not None):    # Covariance update
+            if (type(MDS_cov) == np.ndarray and self.__display_WLP): self.__WLP_cov = WLP_cov
+            else: raise ValueError("WLP_cov is not of type np.ndarray or WLP was not set to visible during class initialization")
+
+
 
 # 
 # Usage example
