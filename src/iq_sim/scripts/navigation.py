@@ -40,82 +40,124 @@ class Navigation(Node):
             TwistStamped, '/drone%i/setpoint_velocity/cmd_vel' % id, 10).publish(twist_msg)
 
     def arm(self, id):
-        arm_client = self.create_client(
-            CommandBool, '/drone%i/cmd/arming' % id)
+        service_string =  '/drone%i/cmd/arming' % id
+        client = self.create_client(CommandBool, service_string)
+        if not client.service_is_ready():
+            self.get_logger().info('Service %s not available, waiting..' % service_string)
+            client.wait_for_service()
 
-        while not arm_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Arming service not available, waiting...')
         request = CommandBool.Request()
         request.value = True
-        future = arm_client.call_async(request)
-        rclpy.spin_until_future_complete(self, future)
-        if future.result() is not None:
-            if future.result().success:
-                self.get_logger().info('Arming successful')
-            else:
+
+        repeating = True
+        while repeating:
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self, future)
+            result = future.result()
+            if result is not None:
+                if result.success:
+                    repeating = False
+                    self.get_logger().info('Arming successful')
+                else:
+                    time.sleep(5.0)
                 self.get_logger().info('Arming failed')
-        else:
-            self.get_logger().info('Failed to call arming service')
+            else:
+                repeating = False
+                self.get_logger().info('Failed to call Arming service')
+
 
     def takeoff(self, id, altitude):
-        # while not self.takeoff_client.wait_for_service(timeout_sec=1.0):
-        #    self.get_logger().info('Takeoff service not available, waiting...')
-        takeoff_srv = CommandTOL.Request()
-        takeoff_srv.yaw = 0.0
-        takeoff_srv.latitude = 0.0
-        takeoff_srv.longitude = 0.0
-        takeoff_srv.altitude = altitude
-        takeoff_srv.min_pitch = 0.0
+        service_string =  '/drone%i/cmd/takeoff' % id
+        client = self.create_client(CommandTOL, service_string)
+        if not client.service_is_ready():
+            self.get_logger().info('Service %s not available, waiting..' % service_string)
+            client.wait_for_service()
 
-        future = self.create_client(
-            CommandTOL, '/drone%i/cmd/takeoff' % id).call_async(takeoff_srv)
-        # rclpy.spin_until_future_complete(self, future)
-        if future.result():
-            self.get_logger().info(CGREEN2 + "Takeoff successful" + CEND)
-            return 0
-        else:
-            self.get_logger().info(CRED2 + "Takeoff failed" + CEND)
-            return -1
+        request = CommandTOL.Request()
+        request.yaw = 0.0
+        request.latitude = 0.0
+        request.longitude = 0.0
+        request.altitude = altitude
+        request.min_pitch = 0.0
+        
+        repeating = True
+        while repeating:
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self, future)
+            result = future.result()
+            if result is not None:
+                if result.success:
+                    repeating = False
+                    self.get_logger().info(CGREEN2 + "Takeoff successful" + CEND)
+                else:
+                    time.sleep(5.0)
+                    self.get_logger().info(CRED2 + "Takeoff failed" + CEND)
+            else:
+                repeating = False
+                self.get_logger().info('Failed to call Takeoff service')
+
+
 
     def land(self, id):
-        # while not self.takeoff_client.wait_for_service(timeout_sec=1.0):
-        #    self.get_logger().info('Takeoff service not available, waiting...')
-        takeoff_srv = CommandTOL.Request()
-        takeoff_srv.yaw = 0.0
-        takeoff_srv.latitude = 0.0
-        takeoff_srv.longitude = 0.0
-        takeoff_srv.altitude = 0.0
-        takeoff_srv.min_pitch = 0.0
-        future = self.create_client(
-            CommandTOL, '/drone%i/cmd/land' % id).call_async(takeoff_srv)
-        # rclpy.spin_until_future_complete(self, future)
-        if future.result():
-            self.get_logger().info(CGREEN2 + "Land successful" + CEND)
-            return 0
-        else:
-            self.get_logger().info(CRED2 + "Land failed" + CEND)
-            return -1
+        service_string =  '/drone%i/cmd/land' % id
+        client = self.create_client(CommandTOL, service_string)
+        if not client.service_is_ready():
+            self.get_logger().info('Service %s not available, waiting..' % service_string)
+            client.wait_for_service()
+        
+        request = CommandTOL.Request()
+        request.yaw = 0.0
+        request.latitude = 0.0
+        request.longitude = 0.0
+        request.altitude = 0.0
+        request.min_pitch = 0.0
+
+        repeating = True
+        while repeating:
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self, future)
+            result = future.result()
+            if result is not None:
+                if result.mode_sent:
+                    repeating = False
+                    self.get_logger().info(CGREEN2 + "Land successful" + CEND)
+                else:
+                    time.sleep(5.0)
+                    self.get_logger().info(CRED2 + "Land failed" + CEND)
+            else:
+                repeating = False
+                self.get_logger().info('Failed to call Land service')
+
 
     def set_mode(self, id, mode):
-        mode_client = self.create_client(
-            SetMode, '/drone%i/set_mode' % id)
-        while not mode_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('SetMode service not available, waiting...')
-        request = SetMode.Request()
-        request.custom_mode = mode
-        future = mode_client.call_async(request)
-        # rclpy.spin_until_future_complete(self, future)
-        if future.result() is not None:
-            if future.result().mode_sent:
-                self.get_logger().info('SetMode successful')
-            else:
-                self.get_logger().info('SetMode failed')
-        else:
-            self.get_logger().info('Failed to call SetMode service')
+        service_string = '/drone%i/set_mode' % id
+        client = self.create_client(SetMode, service_string)
+        if not client.service_is_ready():
+            self.get_logger().info('Service %s not available, waiting..' % service_string)
+            client.wait_for_service()
 
+        request = SetMode.Request()
+        request.base_mode = 0
+        request.custom_mode = mode
+
+        repeating = True
+        while repeating:
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self, future)
+            result = future.result()
+            if result is not None:
+                if result.mode_sent:
+                    repeating = False
+                    self.get_logger().info('SetMode successful')
+                else:
+                    time.sleep(5.0)
+                    self.get_logger().info('SetMode failed')
+            else:
+                repeating = False
+                self.get_logger().info('Failed to call SetMode service')
 
     # move_pos()
     #     # necesitta di conoscere pos
 
-    # move_vel()  
+    # move_vel()
     #     send_setpoint_velocity(+tempo)

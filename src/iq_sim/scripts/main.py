@@ -20,21 +20,19 @@ def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/distances"
 
 TIMESTEP = 0.5
 
-MAP_COEFFICIENTS = [
-    (1, 0, 0), 
-    (0, 1, 0), 
-    (0, 0, 1) 
-]
+MAP_COEFFICIENTS = np.array([
+    [np.sqrt(2), np.sqrt(2), 0],
+    [1, 0, 0], 
+    [0, 1, 0], 
+    [0, 0, 1] 
+])
 
 VELOCITY_MAGNITUDE = 1.0 # [m/s]
 
 class Main(Node):
     def distance_reader_callback(self, received_msg, index):
-        print(received_msg.data)
-        print(np.array(received_msg.data))
         self.distances[:, index] = np.array(received_msg.data)
-        self.distances_booleans[index] = True
-        self.get_logger().info('Received distances for drone%i: %s' %
+        self.get_logger().debug('Received distances for drone%i: %s' %
                                 (index+1, str(self.distances[:, index])))
 
     # def leggi e mds():
@@ -65,23 +63,39 @@ class Main(Node):
 
 
     def cycle_callback(self):
-        # guide all the drones
+        # # guide all the drones
+        # vel_x, vel_y, vel_z = MAP_COEFFICIENTS[0]*VELOCITY_MAGNITUDE 
+        # for id in range(2, self.n_drones+1):
+        #     self.navigation.send_setpoint_velocity(id, vel_x, vel_y, vel_z, 0.0)
 
-        # guide anchor
-        direction = MAP_COEFFICIENTS[self.phase_id-1]
-        self.guide_anchor(direction)
-        # if self.guide_anchor(direction):
-        #     # # moviment: se sappiamo quanto si è moss al'ancora
-        #     # # tempo: se conmosciamo solo la direzione e dobbiamo integrare
-        #     # # direzione: nel terzo caso
-        #     # leggi e MDS(movimento)
-        #     # update_plots()
-        #     # index+=1 % 3    
-        #     pass
+        # # guide anchor
+        # direction = MAP_COEFFICIENTS[self.phase_id]
+        # self.guide_anchor(direction)
+        # # if self.guide_anchor(direction):
+        # #     # # moviment: se sappiamo quanto si è moss al'ancora
+        # #     # # tempo: se conmosciamo solo la direzione e dobbiamo integrare
+        # #     # # direzione: nel terzo caso
+        # #     # leggi e MDS(movimento)
+        # #     # update_plots()
+        # #     # index+=1 % 3    
+        # #     pass
 
-    def check_distances(self):
-        return np.all(self.distances_booleans)
+    def initialize_swarm(self):
+        for id in range(1, self.n_drones+1):
+            self.navigation.set_mode(id, "GUIDED")
+        
+        time.sleep(5)
 
+        for id in range(1, self.n_drones+1):
+            self.navigation.arm(id)
+        
+        time.sleep(5)
+
+        for id in range(1, self.n_drones+1):
+            self.navigation.takeoff(id, 5.0) # self.altitude
+        
+        time.sleep(20) # time to go up
+  
     def __init__(self):
         super().__init__('main')
         self.get_logger().info(
@@ -116,7 +130,6 @@ class Main(Node):
         # self.plot_type = self.get_parameter(
         #     'plot_type').get_parameter_value().string_value
         self.distances = np.ones((self.n_drones, self.n_drones))
-        self.distances_booleans = np.tile(False, self.n_drones)
 
         # calculated
         self.MDS_coords = np.ones(
@@ -139,31 +152,11 @@ class Main(Node):
 
         # Initialize navigation
         self.navigation = Navigation()
-        for id in range(1, self.n_drones+1):
-            self.navigation.set_mode(id, "GUIDED")
-        
-        time.sleep(5)
-
-        for id in range(1, self.n_drones+1):
-            self.navigation.arm(id)
-        
-        time.sleep(5)
-
-        for id in range(1, self.n_drones+1):
-            self.navigation.takeoff(id, 5.0) # self.altitude
-        
-        time.sleep(5)
-        self.phase_id = 1    # for managing the execution
-        self.anchor_id = 1
+        self.initialize_swarm()
 
         # Start cycle
-        self.get_logger().info("Waiting for distances..")
-        while not self.check_distances():
-            time.sleep(TIMESTEP)
-        
-        self.get_logger().info("Distances read")
-        self.cycle_callback()
-        
+        self.phase_id = 1    # for managing the execution
+        self.anchor_id = 1
         # self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
 
 

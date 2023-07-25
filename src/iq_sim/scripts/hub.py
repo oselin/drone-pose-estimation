@@ -7,7 +7,6 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from mavros_msgs.srv import SetMode, CommandBool
-import tf2_ros
 
 from std_msgs.msg import Float32MultiArray
 
@@ -25,12 +24,12 @@ class Hub(Node):
             msg = Float32MultiArray()
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
-            self.get_logger().debug('Distances for drone%i: %s' % (i+1, str(msg.data)))
+            self.get_logger().info('Distances for drone%i: %s' % (i+1, str(msg.data)))
 
     def pose_reader_callback(self, received_msg, index):
         pos = received_msg.pose.position
         self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
-        self.get_logger().debug('Received pose from drone%i: %s' %
+        self.get_logger().info('Received pose from drone%i: %s' %
                                 (index+1, str(self.coords[:, index])))
 
     def compute_distances(self):
@@ -58,8 +57,8 @@ class Hub(Node):
         # self.noise    = self.get_parameter('noise').get_parameter_value().string_value
 
         self.distances = np.ones(
-            (self.n_drones, self.n_drones))    # calculated
-        self.coords = np.ones((3, self.n_drones))                # known, read
+            (self.n_drones, self.n_drones))         # calculated
+        self.coords = np.ones((3, self.n_drones))   # known, read
 
         # Topics
         # read poses
