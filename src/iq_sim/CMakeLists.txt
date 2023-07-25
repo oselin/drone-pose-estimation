@@ -30,9 +30,11 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-  scripts/hub.py
   scripts/fly.py
   scripts/fly_2.py
+  scripts/hub.py
+  scripts/main.py
+  scripts/navigation.py
   scripts/py_gnc_functions.py
   scripts/PrintColours.py
   DESTINATION lib/${PROJECT_NAME}

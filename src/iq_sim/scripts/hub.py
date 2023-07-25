@@ -11,9 +11,13 @@ import tf2_ros
 
 from std_msgs.msg import Float32MultiArray
 
-POSE_TOPIC_TEMPLATE = lambda i : f"/drone{i}/local_position/pose"
-DISTANCE_TOPIC_TEMPLATE = lambda i : f"/drone{i}/distances"
+
+def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/local_position/pose"
+def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/distances"
+
+
 TIMESTEP = 0.5
+
 
 class Hub(Node):
     def write_distances(self):
@@ -21,48 +25,47 @@ class Hub(Node):
             msg = Float32MultiArray()
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
-            #self.get_logger().info('Distances for drone%i: %s' % (i+1, str(msg.data)))
+            self.get_logger().debug('Distances for drone%i: %s' % (i+1, str(msg.data)))
 
     def pose_reader_callback(self, received_msg, index):
         pos = received_msg.pose.position
-        #self.get_logger().info('Received pose from drone%i: %s' % (index+1, str(received_msg)))
         self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
-        print(f"Drone {index+1}:",self.coords[:,index])
+        self.get_logger().debug('Received pose from drone%i: %s' %
+                                (index+1, str(self.coords[:, index])))
 
-            
     def compute_distances(self):
         X = self.coords
-        e = np.ones(X.shape[1]).reshape(-1,1)
-        Phi = np.diag(X.T @ X).reshape(-1,1)
-        D = Phi @ e.T - 2* X.T @ X + e @ Phi.T
+        e = np.ones(X.shape[1]).reshape(-1, 1)
+        Phi = np.diag(X.T @ X).reshape(-1, 1)
+        D = Phi @ e.T - 2 * X.T @ X + e @ Phi.T
         self.distances = D
 
     def cycle_callback(self):
         self.compute_distances()
         self.write_distances()
 
-
     def __init__(self):
         super().__init__('hub')
         self.get_logger().info("Node to read the coordinates and write the distances")
 
-        ## ROS parameters
+        # ROS parameters
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
-        self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
+        # self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
 
         # Class attributes
-        self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
-        self.noise    = self.get_parameter('noise').get_parameter_value().string_value
+        self.n_drones = self.get_parameter(
+            'n_drones').get_parameter_value().integer_value
+        # self.noise    = self.get_parameter('noise').get_parameter_value().string_value
 
-        self.distances = np.ones((self.n_drones, self.n_drones))
-        self.coords    = np.ones((3, self.n_drones))
+        self.distances = np.ones(
+            (self.n_drones, self.n_drones))    # calculated
+        self.coords = np.ones((3, self.n_drones))                # known, read
 
-        # Create tf2 Transformation instances
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_lister = tf2_ros.TransformListener(self.tf_buffer, self)
-        # Subscribe to the topic
+        # Topics
+        # read poses
         for i in range(self.n_drones):
-            print("Topic registered to %s " %str(POSE_TOPIC_TEMPLATE(i+1)))
+            self.get_logger().info("Topic registered to %s " %
+                                   str(POSE_TOPIC_TEMPLATE(i+1)))
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
@@ -73,15 +76,17 @@ class Hub(Node):
         # write the array of distances for each drone separatedly
         self.distance_writers = []
         for i in range(self.n_drones):
-            print("Topic registered to %s to write " %str(DISTANCE_TOPIC_TEMPLATE(i+1)))
+            self.get_logger().info("Topic registered to %s to write " %
+                                   str(DISTANCE_TOPIC_TEMPLATE(i+1)))
             self.distance_writers.append(self.create_publisher(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
                 qos_profile_system_default
             ))
 
-        ## start cycle
+        # Start cycle
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -90,6 +95,7 @@ def main(args=None):
 
     hub.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

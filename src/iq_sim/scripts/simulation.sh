@@ -63,6 +63,11 @@ gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch.py n_drones
 # Launch ROS2 node to calculate the distances from the drones' coordinates
 echo
 echo 'Launching the hub...'
-gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1 -p noise:='none' "
+gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1 " # -p noise:='none' "
+echo 'hub launched!'
 
-#ros2 launch iq_sim MDS # ehehe
+# Launch the script main.py for running MDS, plotting the results and guiding the drones
+echo
+echo 'Launching main.py...'
+gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p n_drones:=$1 -p mode:=1 " # file !?
+echo 'main.py launched!'
