@@ -32,7 +32,7 @@ def new_drone(index):
 def generate_world(drones_number):
 
     # Open the XML file
-    tree = ET.parse(os.path.join(script_directory,"../worlds/multi_drone_empty.world"))
+    tree = ET.parse(os.path.join(script_directory,"../../worlds/multi_drone_empty.world"))
     root = tree.getroot()
 
     # Add the right number of drones
@@ -42,7 +42,7 @@ def generate_world(drones_number):
 
     # Save the modified XML 
     print("Saving world to file")
-    tree.write(os.path.join(script_directory,"../worlds/multi_drone.world"), encoding="utf-8", xml_declaration=True)
+    tree.write(os.path.join(script_directory,"../../worlds/multi_drone.world"), encoding="utf-8", xml_declaration=True)
 
 if __name__ == "__main__":
     

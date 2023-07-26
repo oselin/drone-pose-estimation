@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import os, sys
 
 
-directory   = os.path.dirname(os.path.abspath(__file__)) + '/../models/'
+directory   = os.path.dirname(os.path.abspath(__file__)) + '/../../models/'
 folder_base = "drone"
 template    = "drone_template"
 

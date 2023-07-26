@@ -9,8 +9,8 @@ import rclpy
 import numpy as np
 import time
 
-from navigation import Navigation
-from algebra import *
+from Control import Navigation
+from Algorithms import *
 
 def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/distances"
@@ -93,6 +93,7 @@ class Main(Node):
 
         for id in range(1, self.n_drones+1):
             self.navigation.arm(id)
+            print(f'[drone{id}] Armed.')
             self.navigation.takeoff(id, 5.0)
 
         time.sleep(40.0)  # time to go up
