@@ -30,6 +30,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
+  scripts/algebra.py
   scripts/fly.py
   scripts/fly_2.py
   scripts/hub.py
@@ -39,6 +40,11 @@ install(PROGRAMS
   scripts/PrintColours.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+# install(DIRECTORY
+#   scripts/MDS/UAV
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

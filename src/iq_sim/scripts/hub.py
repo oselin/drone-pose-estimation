@@ -24,13 +24,12 @@ class Hub(Node):
             msg = Float32MultiArray()
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
-            self.get_logger().info('Distances for drone%i: %s' % (i+1, str(msg.data)))
+            # print('Distances for drone%i: %s' % (i+1, str(msg.data)))
 
     def pose_reader_callback(self, received_msg, index):
         pos = received_msg.pose.position
         self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
-        self.get_logger().info('Received pose from drone%i: %s' %
-                                (index+1, str(self.coords[:, index])))
+        # print('Received pose from drone%i: %s' % (index+1, str(self.coords[:, index])))
 
     def compute_distances(self):
         X = self.coords
