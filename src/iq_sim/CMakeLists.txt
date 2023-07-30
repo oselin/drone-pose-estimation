@@ -19,6 +19,10 @@ find_package(rosidl_default_generators REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+set (LOG_NO_INFO    ON)
+set (LOG_NO_WARNING ON)
+set (LOG_NO_ERROR   ON)
+
 include_directories(include)
 
 install(DIRECTORY

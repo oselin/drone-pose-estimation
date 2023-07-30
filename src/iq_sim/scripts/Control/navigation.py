@@ -29,7 +29,7 @@ class Navigation(Node):
         pose_msg.pose.position.y = y
         pose_msg.pose.position.z = z
         self.create_publisher(
-            PoseStamped, '/drone%i/setpoint_position/local' % id, 10).publish(pose_msg)
+            PoseStamped, f'/drone{id}/mavros/setpoint_position/local', 10).publish(pose_msg)
 
     
     def send_setpoint_velocity(self, id, linear_x, linear_y, linear_z, angular_z):
@@ -39,14 +39,14 @@ class Navigation(Node):
         twist_msg.twist.linear.z = linear_z
         twist_msg.twist.angular.z = angular_z
         self.create_publisher(
-            TwistStamped, '/drone%i/setpoint_velocity/cmd_vel' % id, 10).publish(twist_msg)
+            TwistStamped, f'/drone{id}/mavros/setpoint_velocity/cmd_vel', 10).publish(twist_msg)
         
     
     def arm(self, id):
-        service_string =  '/drone%i/cmd/arming' % id
+        service_string =  f'/drone{id}/mavros/cmd/arming'
         client = self.create_client(CommandBool, service_string)
         if not client.service_is_ready():
-            self.get_logger().info('Service %s not available, waiting..' % service_string)
+            self.get_logger().info(f'Service {service_string} not available, waiting..')
             client.wait_for_service(timeout_sec=5.0)
 
         request = CommandBool.Request()
@@ -60,21 +60,21 @@ class Navigation(Node):
             if result is not None:
                 if result.success:
                     repeating = False
-                    self.get_logger().info('drone%i: Arming successful' % id)
+                    self.get_logger().info(f'drone{id}: Arming successful')
                 else:
                     time.sleep(5.0)
-                    self.get_logger().info('drone%i: Arming failed' % id)
+                    self.get_logger().info(f'drone{id}: Arming failed')
             else:
                 repeating = False
-                self.get_logger().info('drone%i: Failed to call Arming service' % id)
+                self.get_logger().info(f'drone{id}: Failed to call Arming service')
 
         client.destroy()
 
     def takeoff(self, id, altitude):
-        service_string =  '/drone%i/cmd/takeoff' % id
+        service_string =  f'/drone{id}/mavros/cmd/takeoff'
         client = self.create_client(CommandTOL, service_string)
         while not client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().info('drone%i: Service %s not available, waiting..' %(id, service_string))
+            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
 
         request = CommandTOL.Request()
         request.yaw = 0.0
@@ -102,10 +102,10 @@ class Navigation(Node):
         client.destroy()
 
     def land(self, id):
-        service_string =  '/drone%i/cmd/land' % id
+        service_string =  f'/drone{id}/mavros/cmd/land'
         client = self.create_client(CommandTOL, service_string)
         while not client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().info('drone%i: Service %s not available, waiting..' % (id, service_string))
+            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
         
         request = CommandTOL.Request()
         request.yaw = 0.0
@@ -132,10 +132,10 @@ class Navigation(Node):
         client.destroy()
 
     def set_mode(self, id, mode):
-        service_string = '/drone%i/set_mode' % id
+        service_string = f'/drone{id}/mavros/set_mode'
         client = self.create_client(SetMode, service_string)
         while not client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().info('drone%i: Service %s not available, waiting..' % (id, service_string))
+            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
         print(f'[drone{id}] Connection to {service_string} established.')
         request = SetMode.Request()
         request.base_mode = 0
@@ -149,13 +149,13 @@ class Navigation(Node):
             if result is not None:
                 if result.mode_sent:
                     repeating = False
-                    self.get_logger().info('drone%i: SetMode successful' % id)
+                    self.get_logger().info(f'drone{id}: SetMode successful')
                 else:
                     time.sleep(5.0)
-                    self.get_logger().info('drone%i: SetMode failed' % id)
+                    self.get_logger().info(f'drone{id}: SetMode failed')
             else:
                 repeating = False
-                self.get_logger().info('drone%i: Failed to call SetMode service' % id)
+                self.get_logger().info(f'drone{id}: Failed to call SetMode service')
         
         client.destroy()
 

@@ -1,0 +1,25 @@
+<launch>
+    <!-- <arg name="fcu_url" default=""/>
+    <arg name="gcs_url" default=""/>
+    <arg name="target_system_id" default=""/>
+    <arg name="target_component_id" default=""/>
+    <arg name="fcu_protocol" default=""/>
+    <arg name="config_yaml" default=""/>
+    <arg name="pluginlists_yaml" default=""/> -->
+    <node pkg="mavros" exec="mavros_node" output="screen" namespace="/drone1/mavros">
+
+        <param name="fcu_url" value="udp://127.0.0.1:14551@14555" />
+        <param name="gcs_url" value="" />
+        <param name="target_system_id" value="1" />
+        <param name="target_component_id" value="1" />
+        <param name="fcu_protocol" value="v2.0" />
+        
+        <!-- load blacklist, config -->
+        <!-- <param from="~/Desktop/apm_pluginlists1.yaml" />
+        <param from="~/Desktop/apm_config1.yaml" /> -->
+        <param from="/home/oselin/Desktop/apm_pluginlists1.yaml" />
+        <param from="/home/oselin/Desktop/apm_config1.yaml" />
+    </node>
+</launch>
+
+<!-- find-pkg-share  -->

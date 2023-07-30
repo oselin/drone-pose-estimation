@@ -12,8 +12,8 @@ import time
 from Control import Navigation
 from Algorithms import *
 
-def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/local_position/pose"
-def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/distances"
+def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/local_position/pose"
+def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
 
 TIMESTEP = 0.5
@@ -142,7 +142,7 @@ class Main(Node):
         # Topics
         # read the array of distances for each drone separatedly
         for i in range(self.n_drones):
-            print("Topic registered to %s to read " % str(DISTANCE_TOPIC_TEMPLATE(i+1)))
+            print(f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to read ")
             self.create_subscription(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
