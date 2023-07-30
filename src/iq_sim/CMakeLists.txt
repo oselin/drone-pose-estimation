@@ -37,6 +37,7 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/hub.py
   scripts/main.py
+  scripts/test.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

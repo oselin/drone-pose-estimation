@@ -12,6 +12,7 @@ import time
 from Control import Navigation
 from Algorithms import *
 
+
 def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
@@ -35,16 +36,12 @@ ANCHOR_COEF = np.array([
 VELOCITY_MAGNITUDE = 1.0  # [m/s]
 
 
-# DA TRASFORMARE IN PARAMETRI:
-noise_std = 0.2
-
-
 class Main(Node):
     def distance_reader_callback(self, received_msg, index):
         self.distances[:, index] = np.array(received_msg.data)
         # print('Received distances for drone%i: %s' % (index+1, str(self.distances[:, index])))
 
-    # def leggi e mds():
+    def leggi e mds():
         # logica per gestire il movimento
         # calcolo distanza integrata
         # Richiamo funzioni ALgebra.py
@@ -69,19 +66,42 @@ class Main(Node):
 
     def update_times(self):
         self.timestamp = time.time()
-        if self.mode == 2:
-            self.movement_time = ANCHOR_MOVEMENT_TIME + \
-                noise(0, noise_std,  [1, 0])
+        self.movement_time = ANCHOR_MOVEMENT_TIME + \
+            noise(0, self.noise_time_std,  1)
+
+    def read_distances(self):
+        self.D_matrices[self.measurement_index] = self.distances
+        self.P_matrices[:, self.measurement_index] = ANCHOR_COEF[self.phase_index] * \
+            VELOCITY_MAGNITUDE * self.movement_time
+        self.measurement_index = (self.measurement_index + 1) % 4
+
+    def run_MDS(self):
+        DM = combine_matrices(
+            self.D_matrices[0],
+            self.D_matrices[1],
+            self.D_matrices[2],
+            self.D_matrices[3],
+            self.P_matrices[:, 0],
+            self.P_matrices[:, 1],
+            self.P_matrices[:, 2],
+            self.P_matrices[:, 3]
+        )
+        MDS(DM, self.P_matrices)
 
     def cycle_callback(self):
         # guide the swarm
         self.move_swarm()
         if time.time() >= self.timestamp + self.movement_time:
-            # leggi e MDS(movimento)
+            # create DM
+            self.read_distances()
+            self.run_MDS()
+
+            # run MDS(movimento)
+
             # update_plots()
             self.update_times()
             self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
-            # print("Anchor moved; new phase index: %i" % self.phase_index)
+            self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
         else:
             self.move_anchor()
 
@@ -91,7 +111,7 @@ class Main(Node):
 
         for id in range(1, self.n_drones+1):
             self.navigation.arm(id)
-            print(f'[drone{id}] Armed.')
+            self.get_logger().info(f'[drone{id}] Armed.')
             self.navigation.takeoff(id, 5.0)
 
         time.sleep(40.0)  # time to go up
@@ -101,36 +121,39 @@ class Main(Node):
         print("Node that reads the distances, computes the coordinates, plots the results and guides the drones.")
 
         # ROS parameters
-        self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
-        self.declare_parameter('mode', rclpy.Parameter.Type.INTEGER)
-        # self.declare_parameter('altitude', rclpy.Parameter.Type.DOUBLE)
-        # self.declare_parameter('noise_dist_mean', rclpy.Parameter.Type.DOUBLE)
-        # self.declare_parameter('noise_dist_std', rclpy.Parameter.Type.DOUBLE)
-        # self.declare_parameter('noise_dyn_mean', rclpy.Parameter.Type.DOUBLE)
-        # self.declare_parameter('noise_dyn_std', rclpy.Parameter.Type.DOUBLE)
-        # self.declare_parameter('plot_type', rclpy.Parameter.Type.INTEGER)
+        # rclpy.Parameter.Type.STRING)
+        self.declare_parameter('environment', 'gazebo')
+        # rclpy.Parameter.Type.INTEGER)
+        self.declare_parameter('n_drones', 2)
+        # rclpy.Parameter.Type.DOUBLE)
+        self.declare_parameter('altitude', 5.0)
+        # rclpy.Parameter.Type.DOUBLE)
+        self.declare_parameter('noise_dist_std', 0.0)
+        # rclpy.Parameter.Type.DOUBLE)
+        self.declare_parameter('noise_time_std', 0.0)
 
         # Class attributes
         # received
+        self.environment = self.get_parameter(
+            'environment').get_parameter_value().string_value
         self.n_drones = self.get_parameter(
             'n_drones').get_parameter_value().integer_value
-        self.mode = self.get_parameter(
-            'mode').get_parameter_value().integer_value
-        # self.altitude = self.get_parameter(
-        #     'altitude').get_parameter_value().double_value
-        # self.noise_dist_mean = self.get_parameter(
-        #     'noise_dist_mean').get_parameter_value().double_value
-        # self.noise_dist_std = self.get_parameter(
-        #     'noise_dist_std').get_parameter_value().double_value
-        # self.noise_dyn_mean = self.get_parameter(
-        #     'noise_dyn_mean').get_parameter_value().double_value
-        # self.noise_dyn_std = self.get_parameter(
-        #     'noise_dyn_std').get_parameter_value().double_value
-        # self.plot_type = self.get_parameter(
-        #     'plot_type').get_parameter_value().string_value
+        self.altitude = self.get_parameter(
+            'altitude').get_parameter_value().double_value
+        self.noise_dist_std = self.get_parameter(
+            'noise_dist_std').get_parameter_value().double_value
+        self.noise_time_std = self.get_parameter(
+            'noise_time_std').get_parameter_value().double_value
+
         self.distances = np.ones((self.n_drones, self.n_drones))
 
+        # measured
+        self.measurement_index = 0
+        self.D_matrices = np.zeros((4, self.n_drones, self.n_drones))
+        self.P_matrices = np.zeros((3, 4))
+
         # calculated
+        self.DM = np.zeros((self.n_drones+3, self.n_drones+3))
         self.MDS_coords = np.ones(
             (3, self.n_drones))
         self.WLP_coords = np.ones(
@@ -140,7 +163,8 @@ class Main(Node):
         # Topics
         # read the array of distances for each drone separatedly
         for i in range(self.n_drones):
-            print(f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to read ")
+            self.get_logger().info(
+                f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to read ")
             self.create_subscription(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
@@ -150,11 +174,13 @@ class Main(Node):
 
         # Initialize navigation
         self.navigation = Navigation()
-        self.initialize_swarm()
+
+        if self.environment == "gazebo":
+            self.initialize_swarm()
 
         # Start cycle
-        self.phase_index = 0    # for managing the execution
         self.anchor_id = 1
+        self.phase_index = 0        # for managing the execution
         self.movement_time = ANCHOR_MOVEMENT_TIME
         self.timestamp = time.time()
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)

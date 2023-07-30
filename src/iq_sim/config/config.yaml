@@ -1,0 +1,5 @@
+config:
+  ros__parameters:
+    altitude: 5.0
+    noise_dist_std: 0.1
+    

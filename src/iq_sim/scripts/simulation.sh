@@ -73,5 +73,5 @@ sleep $((30 * $1))
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
 echo
 echo 'Launching main.py...'
-gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p n_drones:=$1 -p mode:=1 " # file !?
+gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p n_drones:=$1 -p noise:=0.0 " # file !?
 echo 'main.py launched!'
