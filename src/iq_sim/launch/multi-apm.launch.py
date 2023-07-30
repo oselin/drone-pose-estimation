@@ -2,13 +2,26 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
+
 import os
+import yaml
+from ament_index_python.packages import get_package_share_directory
+
 def generate_nodes(context, *args, **kwargs):
     n_drones =  LaunchConfiguration('n_drones').perform(context)
 
     # Rest of your code remains unchanged
-    apm_pluginlists_file = os.path.expanduser('~/ros2_humble_ws/src/iq_sim/scripts/Control/apm_pluginlists.yaml')
-    apm_config_file      = os.path.expanduser('~/ros2_humble_ws/src/iq_sim/scripts/Control/apm_config.yaml')
+    apm_pluginlists_file = os.path.join(
+        get_package_share_directory('iq_sim'),
+        'config',
+        'apm_pluginlists.yaml'
+    )
+    apm_config_file = os.path.join(
+        get_package_share_directory('iq_sim'),
+        'config',
+        'apm_config.yaml'
+    )
 
     nodes = []
     for i in range(1, int(n_drones)+1):

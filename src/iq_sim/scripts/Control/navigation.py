@@ -17,6 +17,7 @@ from mavros_msgs.srv import SetMode
 # Import the API.
 from Plot import *
 
+TIMEOUT = 10.0
 
 class Navigation(Node):
     def __init__(self):
@@ -40,14 +41,43 @@ class Navigation(Node):
         twist_msg.twist.angular.z = angular_z
         self.create_publisher(
             TwistStamped, f'/drone{id}/mavros/setpoint_velocity/cmd_vel', 10).publish(twist_msg)
-        
     
+    def set_mode(self, id, mode):
+        service_string = f'/drone{id}/mavros/set_mode'
+        client = self.create_client(SetMode, service_string)
+        while not client.wait_for_service(timeout_sec=TIMEOUT):
+            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
+        print(f'[drone{id}] Connection to {service_string} established.')
+        request = SetMode.Request()
+        request.base_mode = 0
+        request.custom_mode = mode
+
+        repeating = True
+        while repeating:
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self, future)
+            result = future.result()
+            if result is not None:
+                if result.mode_sent:
+                    repeating = False
+                    self.get_logger().info(f'drone{id}: SetMode successful')
+                else:
+                    time.sleep(TIMEOUT)
+                    self.get_logger().info(f'drone{id}: SetMode failed')
+            else:
+                repeating = False
+                self.get_logger().info(f'drone{id}: Failed to call SetMode service')
+
+            client.remove_pending_request(future)
+
+        client.destroy()
+
     def arm(self, id):
         service_string =  f'/drone{id}/mavros/cmd/arming'
         client = self.create_client(CommandBool, service_string)
         if not client.service_is_ready():
             self.get_logger().info(f'Service {service_string} not available, waiting..')
-            client.wait_for_service(timeout_sec=5.0)
+            client.wait_for_service(timeout_sec=TIMEOUT)
 
         request = CommandBool.Request()
         request.value = True
@@ -62,18 +92,20 @@ class Navigation(Node):
                     repeating = False
                     self.get_logger().info(f'drone{id}: Arming successful')
                 else:
-                    time.sleep(5.0)
+                    time.sleep(TIMEOUT)
                     self.get_logger().info(f'drone{id}: Arming failed')
             else:
                 repeating = False
                 self.get_logger().info(f'drone{id}: Failed to call Arming service')
+
+            client.remove_pending_request(future)
 
         client.destroy()
 
     def takeoff(self, id, altitude):
         service_string =  f'/drone{id}/mavros/cmd/takeoff'
         client = self.create_client(CommandTOL, service_string)
-        while not client.wait_for_service(timeout_sec=5.0):
+        while not client.wait_for_service(timeout_sec=TIMEOUT):
             self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
 
         request = CommandTOL.Request()
@@ -93,18 +125,20 @@ class Navigation(Node):
                     repeating = False
                     self.get_logger().info(CGREEN2 + f"drone{id}: Takeoff successful" + CEND)
                 else:
-                    time.sleep(5.0)
+                    time.sleep(TIMEOUT)
                     self.get_logger().info(CRED2 + f"drone{id}: Takeoff failed" + CEND)
             else:
                 repeating = False
                 self.get_logger().info('Failed to call Takeoff service')
+
+            client.remove_pending_request(future)
 
         client.destroy()
 
     def land(self, id):
         service_string =  f'/drone{id}/mavros/cmd/land'
         client = self.create_client(CommandTOL, service_string)
-        while not client.wait_for_service(timeout_sec=5.0):
+        while not client.wait_for_service(timeout_sec=TIMEOUT):
             self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
         
         request = CommandTOL.Request()
@@ -124,38 +158,13 @@ class Navigation(Node):
                     repeating = False
                     self.get_logger().info(CGREEN2 + f"drone{id}: Land successful" + CEND)
                 else:
-                    time.sleep(5.0)
+                    time.sleep(TIMEOUT)
                     self.get_logger().info(CRED2 + f"drone{id}: Land failed" + CEND)
             else:
                 repeating = False
                 self.get_logger().info('Failed to call Land service')
-        client.destroy()
+            
+            client.remove_pending_request(future)
 
-    def set_mode(self, id, mode):
-        service_string = f'/drone{id}/mavros/set_mode'
-        client = self.create_client(SetMode, service_string)
-        while not client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
-        print(f'[drone{id}] Connection to {service_string} established.')
-        request = SetMode.Request()
-        request.base_mode = 0
-        request.custom_mode = mode
-
-        repeating = True
-        while repeating:
-            future = client.call_async(request)
-            rclpy.spin_until_future_complete(self, future)
-            result = future.result()
-            if result is not None:
-                if result.mode_sent:
-                    repeating = False
-                    self.get_logger().info(f'drone{id}: SetMode successful')
-                else:
-                    time.sleep(5.0)
-                    self.get_logger().info(f'drone{id}: SetMode failed')
-            else:
-                repeating = False
-                self.get_logger().info(f'drone{id}: Failed to call SetMode service')
-        
         client.destroy()
 

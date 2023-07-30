@@ -26,6 +26,7 @@ set (LOG_NO_ERROR   ON)
 include_directories(include)
 
 install(DIRECTORY
+  config
   launch
   models
   scripts

@@ -11,8 +11,8 @@ from mavros_msgs.srv import SetMode, CommandBool
 from std_msgs.msg import Float32MultiArray
 
 
-def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/local_position/pose"
-def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/distances"
+def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/local_position/pose"
+def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
 
 TIMESTEP = 0.5

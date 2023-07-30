@@ -51,26 +51,24 @@ for ((i = 0; i < $1; i++)); do
     drone_idx=$((i + 1))
     echo "Launching Ardupilot session [$drone_idx/$1]"
     gnome-terminal --tab -- bash -c "sim_vehicle.py -v ArduCopter -f gazebo-drone$drone_idx -I$i"
-    sleep 60
-    echo 'Launching an instance of mavros for each node'
-    gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch2.py n_drones:=$drone_idx"
-    sleep 60
+    sleep 30
+    # echo 'Launching an instance of mavros for each node'
+    # gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch.py n_drones:=$drone_idx"
+    # sleep 40
 done
 
-sleep 60
+# Launch mavros
+echo
+echo 'Launching an instance of mavros for each node'
+gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch.py n_drones:=$1"
+sleep $((30 * $1))
 
-# # Launch mavros
-# echo
-# echo 'Launching an instance of mavros for each node'
-# gnome-terminal --tab -- bash -c "ros2 launch iq_sim multi-apm.launch.py n_drones:=$1"
-# sleep $((60 * $1))
-
-# # Launch ROS2 node to calculate the distances from the drones' coordinates
-# echo
-# echo 'Launching the hub...'
-# gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1 " # -p noise:='none' "
-# echo 'hub launched!'
-# sleep $((40 * $1))
+# Launch ROS2 node to calculate the distances from the drones' coordinates
+echo
+echo 'Launching the hub...'
+gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1 " # -p noise:='none' "
+echo 'hub launched!'
+sleep $((30 * $1))
 
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
 echo

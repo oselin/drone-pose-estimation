@@ -89,8 +89,6 @@ class Main(Node):
         for id in range(1, self.n_drones+1):
             self.navigation.set_mode(id, "GUIDED")
 
-        time.sleep(5.0)
-
         for id in range(1, self.n_drones+1):
             self.navigation.arm(id)
             print(f'[drone{id}] Armed.')
