@@ -23,19 +23,19 @@ def TAKEOFF_TOPIC_TEMPLATE(id):  return f'/drone{id}/mavros/cmd/takeoff'
 def LAND_TOPIC_TEMPLATE(id):     return f'/drone{id}/mavros/cmd/land'
 
 
-class Navigation(Node):
+class Navigation():
 
-    def __init__(self, n_drones, timeout=10):
-        super().__init__('navigation')
+    def __init__(self, node, n_drones, timeout=10):
+        #super().__init__('navigation')
         self.timeout = timeout
-
+        self.node = node
         self.pos_publisher, self.vel_publisher = [], []
 
         for id in range(1,n_drones+1):
             self.pos_publisher.append(
-                self.create_publisher(PoseStamped, POSITION_TOPIC_TEMPLATE(id),qos_profile_system_default))
+                self.node.create_publisher(PoseStamped, POSITION_TOPIC_TEMPLATE(id),qos_profile_system_default))
             self.vel_publisher.append(
-                self.create_publisher(TwistStamped, VELOCITY_TOPIC_TEMPLATE(id), qos_profile_system_default))
+                self.node.create_publisher(TwistStamped, VELOCITY_TOPIC_TEMPLATE(id), qos_profile_system_default))
 
 
     def __call_service(self, client, request, service_name, drone_id):
@@ -48,11 +48,11 @@ class Navigation(Node):
             - drone_id: drone id for logging purposes
         """
         while not client.wait_for_service(timeout_sec=self.timeout):
-            self.get_logger().info(f'drone{drone_id}: {service_name} service not available, waiting..')
+            self.node.get_logger().info(f'drone{drone_id}: {service_name} service not available, waiting..')
 
         while True:
             future = client.call_async(request)
-            rclpy.spin_until_future_complete(self, future)
+            rclpy.spin_until_future_complete(self.node, future)
             result = future.result()
 
             if (service_name == 'SETMODE'): answer = result.mode_sent
@@ -60,13 +60,13 @@ class Navigation(Node):
 
             if (result is not None):
                 if (answer):
-                    self.get_logger().info(CGREEN2 + f"drone{drone_id}: {service_name} successful" + CEND)
+                    self.node.get_logger().info(CGREEN2 + f"drone{drone_id}: {service_name} successful" + CEND)
                     break
                 else:
-                    self.get_logger().info(CRED2 + f"drone{drone_id}: {service_name} failed" + CEND)
+                    self.node.get_logger().info(CRED2 + f"drone{drone_id}: {service_name} failed" + CEND)
                     time.sleep(self.timeout)
             else:
-                self.get_logger().info(f'Failed to call {service_name} service')
+                self.node.get_logger().info(f'Failed to call {service_name} service')
                 break
 
             client.remove_pending_request(future)
@@ -113,7 +113,7 @@ class Navigation(Node):
             - mode: the desired mode to be applied
         """
         # Create client
-        client = self.create_client(SetMode, SETMODE_TOPIC_TEMPLATE(id))
+        client = self.node.create_client(SetMode, SETMODE_TOPIC_TEMPLATE(id))
 
         # Create request
         request = SetMode.Request()
@@ -131,7 +131,7 @@ class Navigation(Node):
             - id: targeted drone to be commanded
         """
         # Create client
-        client = self.create_client(CommandBool, ARMING_TOPIC_TEMPLATE(id))
+        client = self.node.create_client(CommandBool, ARMING_TOPIC_TEMPLATE(id))
 
         # Create Request
         request = CommandBool.Request()
@@ -149,7 +149,7 @@ class Navigation(Node):
             - altitude: desired altitude to be reached
         """
         # Create client
-        client = self.create_client(CommandTOL, TAKEOFF_TOPIC_TEMPLATE(id))
+        client = self.node.create_client(CommandTOL, TAKEOFF_TOPIC_TEMPLATE(id))
 
         # Create request
         request = CommandTOL.Request()
@@ -166,7 +166,7 @@ class Navigation(Node):
             - id: targeted drone to be commanded
         """
         # Create client
-        client = self.create_client(CommandTOL, LAND_TOPIC_TEMPLATE(id))
+        client = self.node.create_client(CommandTOL, LAND_TOPIC_TEMPLATE(id))
         
         # Create request - the default one works
         request = CommandTOL.Request()

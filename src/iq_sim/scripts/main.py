@@ -74,6 +74,8 @@ class Main(Node):
         self.timestamp = time.time()
         self.movement_time = ANCHOR_MOVEMENT_TIME + Algorithms.noise(0, self.noise_time_std, shape=1)
 
+        if (not self.algorithms and self.phase_index > 3): self.algorithms = True
+
 
     def read_distances(self):
         """
@@ -131,12 +133,13 @@ class Main(Node):
             self.read_distances()
 
             # Run algorithms
-            X_mds, Cov_mds = self.MDS()
-            X_wlp, Cov_wlp = self.WLP()
+            if (self.algorithms):
+                X_mds, Cov_mds = self.MDS()
+                X_wlp, Cov_wlp = self.WLP()
 
-            print("X_MDS")
-            print(X_mds)
-            print()
+                print("X_MDS")
+                print(X_mds)
+                print()
             # update_plots()
             self.update()
             #self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
@@ -188,6 +191,7 @@ class Main(Node):
         self.phase_index, self.measurement_index = 0, 0
         self.anchor_id = 1
         self.movement_time = ANCHOR_MOVEMENT_TIME
+        self.algorithms = False
 
         self.P_matrices = np.zeros((3, 4))
         self.D_matrices = np.zeros((4, self.n_drones, self.n_drones))
@@ -204,7 +208,7 @@ class Main(Node):
             )
 
         # Initialize Navigation object
-        self.navigation = Navigation(timeout=10, n_drones=self.n_drones)
+        self.navigation = Navigation(node=self, n_drones=self.n_drones, timeout=10)
 
         if (self.environment == "gazebo"): self.initialize_swarm()
 
