@@ -5,166 +5,169 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from mavros_msgs.srv import SetMode, CommandBool
 import time
-from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
-from nav_msgs.msg import Odometry
-from mavros_msgs.msg import State
+from geometry_msgs.msg import PoseStamped
 from mavros_msgs.srv import CommandTOL
-from mavros_msgs.srv import CommandLong
 from mavros_msgs.srv import CommandBool
 from mavros_msgs.srv import SetMode
-
+from rclpy.qos import qos_profile_system_default
 
 # Import the API.
-from Plot import *
+from Plot.PrintColours import *
 
-TIMEOUT = 10.0
+
+def POSITION_TOPIC_TEMPLATE(id): return f'/drone{id}/mavros/setpoint_position/local'
+def VELOCITY_TOPIC_TEMPLATE(id): return f'/drone{id}/mavros/setpoint_velocity/cmd_vel'
+def SETMODE_TOPIC_TEMPLATE(id):  return f'/drone{id}/mavros/set_mode'
+def ARMING_TOPIC_TEMPLATE(id):   return f'/drone{id}/mavros/cmd/arming'
+def TAKEOFF_TOPIC_TEMPLATE(id):  return f'/drone{id}/mavros/cmd/takeoff'
+def LAND_TOPIC_TEMPLATE(id):     return f'/drone{id}/mavros/cmd/land'
+
 
 class Navigation(Node):
-    def __init__(self):
-        super().__init__('navigation')
 
+    def __init__(self, n_drones, timeout=10):
+        super().__init__('navigation')
+        self.timeout = timeout
+
+        self.pos_publisher, self.vel_publisher = [], []
+
+        for id in range(1,n_drones+1):
+            self.pos_publisher.append(
+                self.create_publisher(PoseStamped, POSITION_TOPIC_TEMPLATE(id),qos_profile_system_default))
+            self.vel_publisher.append(
+                self.create_publisher(TwistStamped, VELOCITY_TOPIC_TEMPLATE(id), qos_profile_system_default))
+
+
+    def __call_service(self, client, request, service_name, drone_id):
+        """
+        Service caller: wait for services to be available and forward the desired request.
+        Parameters:
+            - client: agent that allows the communication
+            - request: content of the request that has to be sent
+            - service_name: name of service for logging purposes
+            - drone_id: drone id for logging purposes
+        """
+        while not client.wait_for_service(timeout_sec=self.timeout):
+            self.get_logger().info(f'drone{drone_id}: {service_name} service not available, waiting..')
+
+        while True:
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self, future)
+            result = future.result()
+            if (result is not None):
+                if (result.success):
+                    self.get_logger().info(CGREEN2 + f"drone{drone_id}: {service_name} successful" + CEND)
+                    break
+                else:
+                    self.get_logger().info(CRED2 + f"drone{drone_id}: {service_name} failed" + CEND)
+                    time.sleep(self.timeout)
+            else:
+                self.get_logger().info(f'Failed to call {service_name} service')
+                break
+
+            client.remove_pending_request(future)
+        client.destroy()
+    
     
     def send_setpoint_position(self, id, x, y, z):
+        """
+        Send position coordinates to POSITION_TOPIC_TEMPLATE topic.
+        Parameters:
+            - id: targeted drone to be commanded
+            - x: X-cartesian coordinate
+            - y: Y-cartesian coordinate
+            - z: Z-cartesian coordinate
+        """
         pose_msg = PoseStamped()
         pose_msg.pose.position.x = x
         pose_msg.pose.position.y = y
         pose_msg.pose.position.z = z
-        self.create_publisher(
-            PoseStamped, f'/drone{id}/mavros/setpoint_position/local', 10).publish(pose_msg)
+
+        # Send the message
+        self.pos_publisher[id-1].publish(pose_msg)
 
     
     def send_setpoint_velocity(self, id, linear_x, linear_y, linear_z, angular_z):
+        """
+        Send position coordinates to VELOCITY_TOPIC_TEMPLATE topic.
+        """
         twist_msg = TwistStamped()
         twist_msg.twist.linear.x = linear_x
         twist_msg.twist.linear.y = linear_y
         twist_msg.twist.linear.z = linear_z
         twist_msg.twist.angular.z = angular_z
-        self.create_publisher(
-            TwistStamped, f'/drone{id}/mavros/setpoint_velocity/cmd_vel', 10).publish(twist_msg)
+
+        # Send the message
+        self.vel_publisher[id-1].publish(twist_msg)
     
+
     def set_mode(self, id, mode):
-        service_string = f'/drone{id}/mavros/set_mode'
-        client = self.create_client(SetMode, service_string)
-        while not client.wait_for_service(timeout_sec=TIMEOUT):
-            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
-        print(f'[drone{id}] Connection to {service_string} established.')
+        """
+        Let the drone id change mode and take the desired one.
+        Parameters:
+            - id: targeted drone to be commanded
+            - mode: the desired mode to be applied
+        """
+        # Create client
+        client = self.create_client(SetMode, SETMODE_TOPIC_TEMPLATE(id))
+
+        # Create request
         request = SetMode.Request()
         request.base_mode = 0
         request.custom_mode = mode
+        
+        # Call the service
+        self.__call_service(client=client, request=request, service_name='SETMODE', drone_id=id)
 
-        repeating = True
-        while repeating:
-            future = client.call_async(request)
-            rclpy.spin_until_future_complete(self, future)
-            result = future.result()
-            if result is not None:
-                if result.mode_sent:
-                    repeating = False
-                    self.get_logger().info(f'drone{id}: SetMode successful')
-                else:
-                    time.sleep(TIMEOUT)
-                    self.get_logger().info(f'drone{id}: SetMode failed')
-            else:
-                repeating = False
-                self.get_logger().info(f'drone{id}: Failed to call SetMode service')
-
-            client.remove_pending_request(future)
-
-        client.destroy()
 
     def arm(self, id):
-        service_string =  f'/drone{id}/mavros/cmd/arming'
-        client = self.create_client(CommandBool, service_string)
-        if not client.service_is_ready():
-            self.get_logger().info(f'Service {service_string} not available, waiting..')
-            client.wait_for_service(timeout_sec=TIMEOUT)
+        """
+        Let the drone id arm the throttles
+        Parameters:
+            - id: targeted drone to be commanded
+        """
+        # Create client
+        client = self.create_client(CommandBool, ARMING_TOPIC_TEMPLATE(id))
 
+        # Create Request
         request = CommandBool.Request()
         request.value = True
 
-        repeating = True
-        while repeating:
-            future = client.call_async(request)
-            rclpy.spin_until_future_complete(self, future)
-            result = future.result()
-            if result is not None:
-                if result.success:
-                    repeating = False
-                    self.get_logger().info(f'drone{id}: Arming successful')
-                else:
-                    time.sleep(TIMEOUT)
-                    self.get_logger().info(f'drone{id}: Arming failed')
-            else:
-                repeating = False
-                self.get_logger().info(f'drone{id}: Failed to call Arming service')
+        # Call the service
+        self.__call_service(client=client, request=request, service_name='ARM', drone_id=id)
 
-            client.remove_pending_request(future)
-
-        client.destroy()
 
     def takeoff(self, id, altitude):
-        service_string =  f'/drone{id}/mavros/cmd/takeoff'
-        client = self.create_client(CommandTOL, service_string)
-        while not client.wait_for_service(timeout_sec=TIMEOUT):
-            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
+        """
+        Let the drone id take off and reach the desired altitude.
+        Parameters:
+            - id: targeted drone to be commanded
+            - altitude: desired altitude to be reached
+        """
+        # Create client
+        client = self.create_client(CommandTOL, TAKEOFF_TOPIC_TEMPLATE(id))
 
+        # Create request
         request = CommandTOL.Request()
-        request.yaw = 0.0
-        request.latitude = 0.0
-        request.longitude = 0.0
         request.altitude = altitude
-        request.min_pitch = 0.0
-        
-        repeating = True
-        while repeating:
-            future = client.call_async(request)
-            rclpy.spin_until_future_complete(self, future)
-            result = future.result()
-            if result is not None:
-                if result.success:
-                    repeating = False
-                    self.get_logger().info(CGREEN2 + f"drone{id}: Takeoff successful" + CEND)
-                else:
-                    time.sleep(TIMEOUT)
-                    self.get_logger().info(CRED2 + f"drone{id}: Takeoff failed" + CEND)
-            else:
-                repeating = False
-                self.get_logger().info('Failed to call Takeoff service')
 
-            client.remove_pending_request(future)
+        # Call the service
+        self.__call_service(client=client, request=request, service_name='TAKEOFF', drone_id=id)
 
-        client.destroy()
 
     def land(self, id):
-        service_string =  f'/drone{id}/mavros/cmd/land'
-        client = self.create_client(CommandTOL, service_string)
-        while not client.wait_for_service(timeout_sec=TIMEOUT):
-            self.get_logger().info(f'drone{id}: Service {service_string} not available, waiting..')
+        """
+        Let the drone id land.
+        Parameters:
+            - id: targeted drone to be commanded
+        """
+        # Create client
+        client = self.create_client(CommandTOL, LAND_TOPIC_TEMPLATE(id))
         
+        # Create request - the default one works
         request = CommandTOL.Request()
-        request.yaw = 0.0
-        request.latitude = 0.0
-        request.longitude = 0.0
-        request.altitude = 0.0
-        request.min_pitch = 0.0
 
-        repeating = True
-        while repeating:
-            future = client.call_async(request)
-            rclpy.spin_until_future_complete(self, future)
-            result = future.result()
-            if result is not None:
-                if result.mode_sent:
-                    repeating = False
-                    self.get_logger().info(CGREEN2 + f"drone{id}: Land successful" + CEND)
-                else:
-                    time.sleep(TIMEOUT)
-                    self.get_logger().info(CRED2 + f"drone{id}: Land failed" + CEND)
-            else:
-                repeating = False
-                self.get_logger().info('Failed to call Land service')
-            
-            client.remove_pending_request(future)
-
-        client.destroy()
+        # Call the service
+        self.__call_service(client=client, request=request, service_name='LAND', drone_id=id)
+        
 

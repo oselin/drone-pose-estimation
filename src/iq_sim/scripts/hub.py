@@ -5,13 +5,14 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
-from geometry_msgs.msg import PoseStamped, TwistStamped
-from mavros_msgs.srv import SetMode, CommandBool
+from geometry_msgs.msg import PoseStamped
 
 from std_msgs.msg import Float32MultiArray
+import Algorithms
+from Plot import class_name
 
 
-def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/local_position/pose"
+def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
 
@@ -19,51 +20,57 @@ TIMESTEP = 0.5
 
 
 class Hub(Node):
+
     def write_distances(self):
+        """
+        Publish distances on DISTANCE_TOPIC_TEMPLATE topic, as it was the UWB sensor's information.
+        """
         for i in range(self.n_drones):
             msg = Float32MultiArray()
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
-            # print('Distances for drone%i: %s' % (i+1, str(msg.data)))
+
 
     def pose_reader_callback(self, received_msg, index):
+        """
+        Callaback function for the POSE_TOPIC_TEMPLATE topic.
+        Save the information sent over the topic in the coords data structure.
+        """
         pos = received_msg.pose.position
         self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
-        # print('Received pose from drone%i: %s' % (index+1, str(self.coords[:, index])))
 
-    def compute_distances(self):
-        X = self.coords
-        e = np.ones(X.shape[1]).reshape(-1, 1)
-        Phi = np.diag(X.T @ X).reshape(-1, 1)
-        D = Phi @ e.T - 2 * X.T @ X + e @ Phi.T
-        self.distances = D
 
     def cycle_callback(self):
-        self.compute_distances()
+        """
+        Cycle callback function. It works on a 2-steps approach.
+            -1) Convert coordinates in distances
+            -2) Send distances over the proper topic, as UWB sensor information
+        """
+        self.distances = Algorithms.distance_matrix(self.coords)
         self.write_distances()
 
+
     def __init__(self):
+
+        # Declare the ROS2 node
+        class_name(self)
         super().__init__('hub')
         self.get_logger().info("Node to read the coordinates and write the distances")
 
-        # ROS parameters
+        # Parameters from ROS2 command line
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
-        # self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
+        self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
 
-        # Class attributes
-        self.n_drones = self.get_parameter(
-            'n_drones').get_parameter_value().integer_value
+        # self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
         # self.noise    = self.get_parameter('noise').get_parameter_value().string_value
 
-        self.distances = np.ones(
-            (self.n_drones, self.n_drones))         # calculated
-        self.coords = np.ones((3, self.n_drones))   # known, read
+        # Pre-allocation of memory
+        self.distances = np.ones((self.n_drones, self.n_drones))         
+        self.coords = np.ones((3, self.n_drones))   
 
-        # Topics
-        # read poses
+        # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info("Topic registered to %s " %
-                                   str(POSE_TOPIC_TEMPLATE(i+1)))
+            self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
@@ -71,18 +78,17 @@ class Hub(Node):
                 qos_profile_system_default
             )
 
-        # write the array of distances for each drone separatedly
+        # Publish to DISTANCE_TOPIC_TEMPLATE topic for each drone and save i-th client to list
         self.distance_writers = []
         for i in range(self.n_drones):
-            self.get_logger().info("Topic registered to %s to write " %
-                                   str(DISTANCE_TOPIC_TEMPLATE(i+1)))
+            self.get_logger().info(f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to write")
             self.distance_writers.append(self.create_publisher(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
                 qos_profile_system_default
             ))
 
-        # Start cycle
+        # Loop over time
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
 
 

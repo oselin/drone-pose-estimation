@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 from std_msgs.msg import Float32MultiArray
-from mavros_msgs.srv import SetMode, CommandBool
-from geometry_msgs.msg import PoseStamped, TwistStamped
 from rclpy.qos import qos_profile_system_default
 from rclpy.node import Node
 import rclpy
@@ -12,6 +10,7 @@ import time
 
 from Control import Navigation
 import Algorithms
+from Plot import class_name
 
 
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
@@ -135,9 +134,12 @@ class Main(Node):
             X_mds, Cov_mds = self.MDS()
             X_wlp, Cov_wlp = self.WLP()
 
+            print("X_MDS")
+            print(X_mds)
+            print()
             # update_plots()
             self.update()
-            self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
+            #self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
         else:
             self.move_anchor()
 
@@ -159,9 +161,12 @@ class Main(Node):
 
 
     def __init__(self):
+
+        # Declare the ROS2 node
+        class_name(self)
         super().__init__('main')
         print("Node that reads the distances, computes the coordinates, plots the results and guides the drones.")
-
+        
         # Parameters from ROS2 command line
         self.declare_parameter('environment', 'gazebo')     # rclpy.Parameter.Type.STRING
         self.environment = self.get_parameter('environment').get_parameter_value().string_value

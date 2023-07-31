@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
-from std_msgs.msg import Float32MultiArray
-from mavros_msgs.srv import SetMode, CommandBool
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from rclpy.qos import qos_profile_system_default
 from rclpy.node import Node
 import rclpy
 
 import numpy as np
-import time
 
-from Control import Navigation
 from Algorithms import *
-
+from Plot import class_name
 
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def VELOCITY_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/setpoint_velocity/cmd_vel"
@@ -70,6 +66,7 @@ class Test(Node):
     def __init__(self):
 
         # Declare the ROS2 node
+        class_name(self)
         super().__init__('test')
         self.get_logger().info("Node that simulates the simulator.")
 

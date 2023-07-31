@@ -154,7 +154,7 @@ def WLP(distance_matrix, anchor_pos):
 
 def EVD(DM, final_dimension):
     """
-    Return the relative map of the nodes in the network
+    Return the relative map of the nodes in the network.
     """
     # Current size of the matrix. It is square, thus len = shape
     n = len(DM)
