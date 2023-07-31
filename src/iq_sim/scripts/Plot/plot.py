@@ -64,7 +64,16 @@ class Plot():
         if (frame == 'MDS'): return self.__axis_MDS, self.__MDS_coords, self.__MDS_cov
         else: return self.__axis_WLP, self.__WLP_coords, self.__WLP_cov
 
+
     def __data_to_2D(self, data):
+        """
+        Convert 3D data in 2D, by using different techniques.
+        Methods supported: PCA, xy
+        Parameters:
+            - data: 3D data to be converted, shape=[3, n]
+        Return:
+            - 2D data
+        """
         if (self.__reduction_method == 'PCA'):
             pca = PCA(n_components=2)
             return pca.fit_transform(data) 
@@ -88,13 +97,14 @@ class Plot():
             if (self.__mode == '2D'):
                 t = self.__data_to_2D(self.__true_coords) # reduce to 2D
                 d = self.__data_to_2D(data)               # reduce to 2D
-                axis.scatter(self.__true_coords[0],  self.__true_coords[1], c="red"  ) # Plot true coordinates
-                axis.scatter(d[0], d[1], c="black") 
+                
+                axis.scatter(t[0], t[1], c="red")         # Plot true coordinates
+                axis.scatter(d[0], d[1], c="black")       # Plot estimated coordinates
 
                 if (self.__display_cov): self.__draw_covariance(frame=frame, confidence=0.95)
             else:
                 axis.scatter(self.__true_coords[0],  self.__true_coords[1],  self.__true_coords[2],  c="red"  ) # Plot true coordinates
-                axis.scatter(data[0], data[1], data[2],  c="black")
+                axis.scatter(data[0], data[1], data[2],  c="black") # Plot estimated coordinates
     
     
     def __draw_covariance(self, frame: str, confidence=0.95):
@@ -215,22 +225,23 @@ class Plot():
             - WLP_cov: covariance matrix associated to each point, estimated via WLP algorithm
         """
 
-        assert type(true_coords) == np.ndarray
-        self.__true_coords = true_coords
+        if (true_coords is not None):   # True coordinates update
+            if (type(true_coords) == np.ndarray):self.__true_coords = true_coords
+            else: raise ValueError(f"true_coords is of type {type(true_coords)}, but it must be either 'None' or 'np.ndarray'")
         
-        if (MDS_coords is not None): # Mean update
+        if (MDS_coords is not None):    # Mean update
             if (type(MDS_coords) == np.ndarray and self.__display_MDS): self.__MDS_coords = MDS_coords
             else: raise ValueError("MDS_coords is not of type np.ndarray or MDS was not set to visible during class initialization")
 
-        if (MDS_cov is not None):    # Covariance update
+        if (MDS_cov is not None):       # Covariance update
             if (type(MDS_cov) == np.ndarray and self.__display_MDS and self.__display_cov): self.__MDS_cov = MDS_cov
             else: raise ValueError("MDS_cov is not of type np.ndarray or MDS was not set to visible during class initialization")
 
-        if (WLP_coords is not None): # Mean update
+        if (WLP_coords is not None):    # Mean update
             if (type(WLP_coords) == np.ndarray and self.__display_WLP): self.__WLP_coords = WLP_coords
             else: raise ValueError("WLP_coords is not of type np.ndarray or WLP was not set to visible during class initialization")
 
-        if (WLP_cov is not None):    # Covariance update
+        if (WLP_cov is not None):       # Covariance update
             if (type(MDS_cov) == np.ndarray and self.__display_WLP and self.__display_cov): self.__WLP_cov = WLP_cov
             else: raise ValueError("WLP_cov is not of type np.ndarray or WLP was not set to visible during class initialization")
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from std_msgs.msg import Float32MultiArray
+from geometry_msgs.msg import PoseStamped
 from rclpy.qos import qos_profile_system_default
 from rclpy.node import Node
 import rclpy
@@ -10,26 +11,36 @@ import time
 
 from Control import Navigation
 import Algorithms
-from Plot import class_name
+from Plot import class_name, Plot
 
 
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
 
-TIMESTEP = 0.5
+TIMESTEP = 0.5              # to put in the config.yaml file
 
-ANCHOR_MOVEMENT_TIME = 1.0  # 1 s
+ANCHOR_MOVEMENT_TIME = 1.0  # 1 s   # to put in the config.yaml file
 
 # SWARM_COEF = np.array([np.sqrt(2), np.sqrt(2), 0])
 SWARM_COEF   = np.array([0.0, 1.0, 0.0])
 
 ANCHOR_COEF  = np.vstack([np.eye(3), -np.eye(3)])
 
-VELOCITY_MAGNITUDE = 1.0  # [m/s]
+VELOCITY_MAGNITUDE = 1.0  # [m/s]   # to put in the config.yaml file
 
 
 class Main(Node):
+
+    def pose_reader_callback(self, received_msg, index):
+        """
+        Callaback function for the POSE_TOPIC_TEMPLATE topic.
+        Save the information sent over the topic in the coords data structure.
+        It is activated only if 'environment' is set to 'test'
+        """
+        pos = received_msg.pose.position
+        self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
+
 
     def distance_reader_callback(self, received_msg, index):
         """
@@ -137,9 +148,12 @@ class Main(Node):
                 X_mds, Cov_mds = self.MDS()
                 X_wlp, Cov_wlp = self.WLP()
 
-                print("X_MDS")
-                print(X_mds)
-                print()
+                if (self.environment == 'test'):
+                    tmp = self.coords - self.coords[:,0].reshape(-1,1)
+                    self.plot.update(true_coords=tmp, MDS_coords=X_mds, WLP_coords=X_wlp, MDS_cov=None, WLP_cov=None)
+                    print("X_MDS")
+                    print(X_mds)
+                    print()
             # update_plots()
             self.update()
             #self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
@@ -210,10 +224,30 @@ class Main(Node):
         # Initialize Navigation object
         self.navigation = Navigation(node=self, n_drones=self.n_drones, timeout=10)
 
+        # Initialize Plot object
+        self.plot = Plot(mode='3D', display_MDS=True, display_WLP=True, )
+
+
         if (self.environment == "gazebo"): self.initialize_swarm()
+        else: 
+            self.coords = np.ones((3, self.n_drones))   
+
+            # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
+            for i in range(self.n_drones):
+                self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
+                self.create_subscription(
+                    PoseStamped,
+                    POSE_TOPIC_TEMPLATE(i+1),
+                    lambda msg, i=i: self.pose_reader_callback(msg, i),
+                    qos_profile_system_default
+                )
+
 
         # Initialize timer
         self.timestamp = time.time()
+
+        # Start the plot thread
+        self.plot.start()
 
         # Loop over time
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)

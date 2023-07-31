@@ -13,7 +13,7 @@ def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def VELOCITY_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/setpoint_velocity/cmd_vel"
 
 
-TIMESTEP = 0.1
+TIMESTEP = 0.1 # to put in the config file
 
 class Test(Node):
 
