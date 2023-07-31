@@ -95,5 +95,11 @@
 			<uri>model://drone3</uri>
 		</include>
 	</model>
+<model name="drone4">
+		<pose>4 0 0 0 0 0</pose>
+		<include>
+			<uri>model://drone4</uri>
+		</include>
+	</model>
 </world>
 </sdf>

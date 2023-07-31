@@ -204,7 +204,7 @@ class Main(Node):
             )
 
         # Initialize Navigation object
-        self.navigation = Navigation()
+        self.navigation = Navigation(timeout=10, n_drones=self.n_drones)
 
         if (self.environment == "gazebo"): self.initialize_swarm()
 

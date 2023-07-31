@@ -54,8 +54,12 @@ class Navigation(Node):
             future = client.call_async(request)
             rclpy.spin_until_future_complete(self, future)
             result = future.result()
+
+            if (service_name == 'SETMODE'): answer = result.mode_sent
+            else: answer = result.success
+
             if (result is not None):
-                if (result.success):
+                if (answer):
                     self.get_logger().info(CGREEN2 + f"drone{drone_id}: {service_name} successful" + CEND)
                     break
                 else:
