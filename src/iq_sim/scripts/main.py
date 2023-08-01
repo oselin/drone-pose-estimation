@@ -14,7 +14,7 @@ import Algorithms
 from Plot import class_name, Plot
 
 
-def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/local_position/pose"
+def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
 
@@ -84,16 +84,14 @@ class Main(Node):
             - movement_time
             - phase_index
         """
-        if self.phase_index == 0:
-            self.offset = np.copy(self.coords[:, 0])
+        if self.phase_index == 0: self.offset = np.copy(self.coords[:, 0])
         
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
+        
         self.timestamp = time.time()
-        self.movement_time = ANCHOR_MOVEMENT_TIME + \
-            Algorithms.noise(0, self.noise_time_std, shape=1)
+        self.movement_time = ANCHOR_MOVEMENT_TIME + Algorithms.noise(0, self.noise_time_std, shape=1)
 
-        if (not self.algorithms and self.phase_index > 3):
-            self.algorithms = True
+        if (not self.algorithms and self.phase_index > 3): self.algorithms = True
 
 
     def read_distances(self):
