@@ -84,8 +84,9 @@ class Main(Node):
             - movement_time
             - phase_index
         """
-        if self.phase_index == 0: self.offset = np.copy(self.coords[:, 0])
-        
+        if self.phase_index == 0:
+            self.offset = np.copy(self.coords[:, 0])
+
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         
         self.timestamp = time.time()
@@ -93,14 +94,14 @@ class Main(Node):
 
         if (not self.algorithms and self.phase_index > 3): self.algorithms = True
 
-
     def read_distances(self):
         """
         Update the distances matrix read at phase phase_index and store it,
         as well as the anchor position. 
         """
         self.D_matrices[self.measurement_index] = np.copy(self.DM_buffer)
-        self.P_matrices[:, self.measurement_index] = ANCHOR_COEF[self.phase_index] * \
+        
+        self.P_matrices[:, (self.measurement_index + 1) % 4] = self.P_matrices[:, self.measurement_index] + ANCHOR_COEF[self.phase_index] * \
             VELOCITY_MAGNITUDE * self.movement_time
         self.measurement_index = (self.measurement_index + 1) % 4
 
@@ -142,6 +143,14 @@ class Main(Node):
         """
         # guide the swarm
         self.move_swarm()
+        print("phase_index")
+        print(str(self.phase_index))
+
+        print("P_matrices")
+        print(str(self.P_matrices))
+
+        # print("D_matr")
+        # print(str(self.D_matrices))
 
         if ((time.time() - self.timestamp) >= self.movement_time):
 
@@ -153,10 +162,9 @@ class Main(Node):
                 X_mds, Cov_mds = self.MDS()
                 X_wlp, Cov_wlp = self.WLP()
 
-                tmp = self.coords - self.offset.reshape(-1,1)
                 self.coords[:, 0].reshape(-1, 1)
-                self.plot.update(true_coords=tmp, MDS_coords=X_mds,
-                                    WLP_coords=X_wlp, MDS_cov=None, WLP_cov=None)
+                self.plot.update(true_coords=self.coords, MDS_coords=X_mds+self.offset.reshape(-1, 1),
+                                 WLP_coords=X_wlp+self.offset.reshape(-1, 1), MDS_cov=None, WLP_cov=None)
                 print("X_MDS")
                 print(X_mds)
                 print()
