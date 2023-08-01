@@ -44,8 +44,6 @@ class Main(Node):
         pos = received_msg.pose.position
         self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(
             index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
-        self.get_logger().info(f"self.coords[:,{index}]")
-        self.get_logger().info(str(self.coords[:, index]))
 
     def distance_reader_callback(self, received_msg, index):
         """
@@ -87,11 +85,8 @@ class Main(Node):
             - phase_index
         """
         if self.phase_index == 0:
-            self.offset = self.coords[:, 0]
+            self.offset = np.copy(self.coords[:, 0])
         
-        self.get_logger().info(f"offset")
-        self.get_logger().info(str(self.offset))
-
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         self.timestamp = time.time()
         self.movement_time = ANCHOR_MOVEMENT_TIME + \
@@ -106,7 +101,7 @@ class Main(Node):
         Update the distances matrix read at phase phase_index and store it,
         as well as the anchor position. 
         """
-        self.D_matrices[self.measurement_index] = self.DM_buffer
+        self.D_matrices[self.measurement_index] = np.copy(self.DM_buffer)
         self.P_matrices[:, self.measurement_index] = ANCHOR_COEF[self.phase_index] * \
             VELOCITY_MAGNITUDE * self.movement_time
         self.measurement_index = (self.measurement_index + 1) % 4
