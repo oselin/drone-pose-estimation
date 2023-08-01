@@ -83,11 +83,5 @@
 			<uri>model://drone1</uri>
 		</include>
 	</model>
-<model name="drone2">
-		<pose>2 0 0 0 0 0</pose>
-		<include>
-			<uri>model://drone2</uri>
-		</include>
-	</model>
 </world>
 </sdf>

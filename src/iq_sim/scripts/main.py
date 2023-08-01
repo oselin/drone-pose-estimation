@@ -29,17 +29,18 @@ ANCHOR_COEF  = np.vstack([np.eye(3), -np.eye(3)])
 
 VELOCITY_MAGNITUDE = 1.0  # [m/s]   # to put in the config.yaml file
 
+def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array([[0,1,0,i+1], [-1,0,0,0], [0,0,1,0], [0,0,0,1]])
 
 class Main(Node):
 
     def pose_reader_callback(self, received_msg, index):
         """
-        Callaback function for the POSE_TOPIC_TEMPLATE topic.
+        Callback function for the POSE_TOPIC_TEMPLATE topic.
         Save the information sent over the topic in the coords data structure.
         It is activated only if 'environment' is set to 'test'
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
+        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
 
 
     def distance_reader_callback(self, received_msg, index):
@@ -227,7 +228,6 @@ class Main(Node):
         # Initialize Plot object
         self.plot = Plot(mode='3D', display_MDS=True, display_WLP=True, )
 
-
         if (self.environment == "gazebo"): self.initialize_swarm()
         else: 
             self.coords = np.ones((3, self.n_drones))   
@@ -241,7 +241,6 @@ class Main(Node):
                     lambda msg, i=i: self.pose_reader_callback(msg, i),
                     qos_profile_system_default
                 )
-
 
         # Initialize timer
         self.timestamp = time.time()

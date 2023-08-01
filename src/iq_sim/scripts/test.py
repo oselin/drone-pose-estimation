@@ -11,7 +11,8 @@ from Plot import class_name
 
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def VELOCITY_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/setpoint_velocity/cmd_vel"
-
+def M_ROT_TRASL_Z_GZ_DRONE(i): return np.array([[0,-1,0,0], [1,0,0,-(i+1)], [0,0,1,0], [0,0,0,1]])
+# M_ROT_TRASL_Z_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
 
 TIMESTEP = 0.1 # to put in the config file
 
@@ -40,13 +41,16 @@ class Test(Node):
     def write_positions(self):
         """
         Send updated position via ROS2 topics
+        The transformations simulate the APM conventions (rotation of pi about x)
         """
         for i in range(self.n_drones):
+            pos = M_ROT_TRASL_Z_GZ_DRONE(i) @ np.hstack([self.states[:3], 1])
+
             pose_msg = PoseStamped()
-            pose_msg.pose.position.x = self.states[0, i] 
-            pose_msg.pose.position.y = self.states[1, i] 
-            pose_msg.pose.position.z = self.states[2, i] 
-            
+            pose_msg.pose.position.x = pos[0]
+            pose_msg.pose.position.y = pos[1]
+            pose_msg.pose.position.z = pos[2]
+
             self.writers[i].publish(pose_msg)
 
 

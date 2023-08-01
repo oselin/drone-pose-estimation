@@ -14,6 +14,7 @@ from Plot import class_name
 
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
+def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array([[0,1,0,i+1], [-1,0,0,0], [0,0,1,0], [0,0,0,1]])
 
 
 TIMESTEP = 0.5
@@ -37,8 +38,7 @@ class Hub(Node):
         Save the information sent over the topic in the coords data structure.
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = [pos.x + index + 1, pos.y, pos.z]
-
+        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
 
     def cycle_callback(self):
         """
