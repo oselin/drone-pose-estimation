@@ -14,22 +14,21 @@ import Algorithms
 from Plot import class_name, Plot
 
 
-def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
-def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
+def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
+def DISTANCE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/distances"
 
 
-TIMESTEP = 0.5              # to put in the config.yaml file
-
-ANCHOR_MOVEMENT_TIME = 1.0  # 1 s   # to put in the config.yaml file
+TIMESTEP = 0.1
+ANCHOR_MOVEMENT_TIME = 1.0  # 1 s
 
 SWARM_COEF = np.array([0.0, 1.0, 0.0])
+ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 
-ANCHOR_COEF = np.vstack([np.eye(3), -np.eye(3)])
+SWARM_VELOCITY_MAGNITUDE = 0.5  # [m/s]
+ANCHOR_VELOCITY_MAGNITUDE = 1.0
 
-VELOCITY_MAGNITUDE = 1.0  # [m/s]   # to put in the config.yaml file
 
-
-def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array(
+def M_ROT_TRASL_DRONE_GZ(i): return np.array(
     [[0, 1, 0, i+1], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
 
@@ -42,7 +41,7 @@ class Main(Node):
         It is activated only if 'environment' is set to 'test'
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(
+        self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(
             index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
 
     def distance_reader_callback(self, received_msg, index):
@@ -51,67 +50,49 @@ class Main(Node):
         """
         self.DM_buffer[:, index] = np.array(received_msg.data)
 
-    def move_swarm(self):
+    def initialize_swarm(self):
         """
-        Move the drone swarm by sending velcity values.
-        The method does not affect the anchor motion.
+        Initialize the swarm by appling the ArduCopter procedure.
+            -1) Set mode to GUIDED
+            -2) Arm the throttles
+            -3) Take off to specified altitude
         """
-        # Compute the velocity components
-        vel_x, vel_y, vel_z = SWARM_COEF*VELOCITY_MAGNITUDE
+        for id in range(1, self.n_drones+1):
+            self.navigation.set_mode(id, "GUIDED")
 
-        # Send velocity value
-        for id in range(2, self.n_drones+1):
-            self.navigation.send_setpoint_velocity(
-                id, vel_x, vel_y, vel_z, 0.0)
+        for id in range(1, self.n_drones+1):
+            self.navigation.arm(id)
+            self.navigation.takeoff(id, self.altitude)
 
-    def move_anchor(self):
-        """
-        Move the anchor dron by sending velcity values.
-        The method does not affect the swarm motion.
-        """
-        # Compute the velocity components
-        vel_x, vel_y, vel_z = (
-            SWARM_COEF + ANCHOR_COEF[self.phase_index]) * VELOCITY_MAGNITUDE
+        time.sleep(40.0)  # time to go up
 
-        # Send velocity value
-        self.navigation.send_setpoint_velocity(
-            self.anchor_id, vel_x, vel_y, vel_z, 0.0)
-
-    def update(self):
+    def update(self, timestep):
         """
         Update the following class parameters:
-            - timestamp
-            - movement_time
+            - distance matrix
+            - anchor position
+            - measurement_index
             - phase_index
-        """
-        if self.phase_index == 0:
-            self.offset = np.copy(self.coords[:, 0])
-
-        self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
-        
-        self.timestamp = time.time()
-        self.movement_time = ANCHOR_MOVEMENT_TIME + Algorithms.noise(0, self.noise_time_std, shape=1)
-
-        if (not self.algorithms and self.phase_index > 3): self.algorithms = True
-
-    def read_distances(self):
-        """
-        Update the distances matrix read at phase phase_index and store it,
-        as well as the anchor position. 
+            - offset
+            - movement_time
+            - timestamp
         """
         self.D_matrices[self.measurement_index] = np.copy(self.DM_buffer)
-        
-        print(f"Old measurement index {self.measurement_index}")
-        print(f"Old column to be rewritten: {self.P_matrices[:, self.measurement_index]}")
-        print(f"Operation: {self.P_matrices[:, self.measurement_index -1]} + {ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time}")
-        self.P_matrices[:, self.measurement_index] = self.P_matrices[:, self.measurement_index -1] +  \
-            ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time
+
+        self.P_matrices[:, self.measurement_index] = self.P_matrices[:, self.measurement_index -
+                                                                     1] + ANCHOR_COEF[self.phase_index] * ANCHOR_VELOCITY_MAGNITUDE * timestep
 
         self.measurement_index = (self.measurement_index + 1) % 4
-        print(f"measurement index updated to {self.measurement_index}")
-        print(self.P_matrices)
-        print()
+        self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
 
+        self.movement_time = ANCHOR_MOVEMENT_TIME + \
+            Algorithms.noise(0, self.noise_time_std, shape=1)
+
+        self.offset = np.copy(self.coords[:, 0])
+        self.timestamp = time.time()
+
+        if (not self.algorithms and self.phase_index > 3):
+            self.algorithms = True
 
     def MDS(self):
         """
@@ -145,17 +126,43 @@ class Main(Node):
 
         return Algorithms.WLP(DM, self.P_matrices), None
 
+    def move_swarm(self):
+        """
+        Move the drone swarm by sending velcity values.
+        The method does not affect the anchor motion.
+        """
+        # Compute the velocity components
+        vel_x, vel_y, vel_z = SWARM_COEF*SWARM_VELOCITY_MAGNITUDE
+
+        # Send velocity value
+        for id in range(2, self.n_drones+1):
+            self.navigation.send_setpoint_velocity(
+                id, vel_x, vel_y, vel_z, 0.0)
+
+    def move_anchor(self):
+        """
+        Move the anchor dron by sending velcity values.
+        The method does not affect the swarm motion.
+        """
+        # Compute the velocity components
+        vel_x, vel_y, vel_z = SWARM_COEF * SWARM_VELOCITY_MAGNITUDE + \
+            ANCHOR_COEF[self.phase_index] * ANCHOR_VELOCITY_MAGNITUDE
+
+        # Send velocity value
+        self.navigation.send_setpoint_velocity(
+            self.anchor_id, vel_x, vel_y, vel_z, 0.0)
+
     def cycle_callback(self):
         """
         Node main loop.
         """
         # guide the swarm
-        self.move_swarm()
 
+        # a = -self.get_clock().now().to_msg().sec-self.get_clock().now().to_msg().nanosec/1e9
+        
         if ((time.time() - self.timestamp) >= self.movement_time):
-
-            # Update distance matrices and anchors positions
-            self.read_distances()
+            # Update distance matrices, anchors positions and indicicies
+            self.update(timestep = time.time() - self.timestamp)
 
             # Run algorithms
             if (self.algorithms):
@@ -163,32 +170,20 @@ class Main(Node):
                 X_wlp, Cov_wlp = self.WLP()
 
                 self.coords[:, 0].reshape(-1, 1)
-                self.plot.update(true_coords=self.coords, MDS_coords=X_mds+self.offset.reshape(-1, 1),
-                                 WLP_coords=X_wlp+self.offset.reshape(-1, 1), MDS_cov=None, WLP_cov=None)
-                
-                
-            # update_plots()
-            self.update()
-            # self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
-        else:
-            pass
-            self.move_anchor()
+                self.plot.update(
+                    true_coords=np.copy(self.coords),
+                    MDS_coords=X_mds + self.offset.reshape(-1, 1),
+                    WLP_coords=X_wlp + self.offset.reshape(-1, 1),
+                    MDS_cov=None,
+                    WLP_cov=None
+                )
 
-    def initialize_swarm(self):
-        """
-        Initialize the swarm by appling the ArduCopter procedure.
-            -1) Set mode to GUIDED
-            -2) Arm the throttles
-            -3) Take off to specified altitude
-        """
-        for id in range(1, self.n_drones+1):
-            self.navigation.set_mode(id, "GUIDED")
+            self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
 
-        for id in range(1, self.n_drones+1):
-            self.navigation.arm(id)
-            self.navigation.takeoff(id, self.altitude)
-
-        time.sleep(40.0)  # time to go up
+        self.move_swarm()
+        self.move_anchor()
+        # print("sec")
+        # print(a+self.get_clock().now().to_msg().sec+self.get_clock().now().to_msg().nanosec/1e9)
 
     def __init__(self):
 
@@ -238,7 +233,7 @@ class Main(Node):
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
             self.get_logger().info(
-                f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to read ")
+                f"Read from {DISTANCE_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
@@ -249,7 +244,7 @@ class Main(Node):
         # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
             self.get_logger().info(
-                f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
+                f"Read from {POSE_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),

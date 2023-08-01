@@ -22,7 +22,7 @@ def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array([[0,1,0,i+1], [-1,0,0,0], [0,0,-1
 #        [ 0.,  0.,  1.,  0.],
 #        [ 0.,  0.,  0.,  1.]])
 
-TIMESTEP = 0.5
+TIMESTEP = 0.01
 
 
 class Hub(Node):
@@ -75,7 +75,7 @@ class Hub(Node):
 
         # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
+            self.get_logger().info(f"Read from {POSE_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
@@ -86,7 +86,7 @@ class Hub(Node):
         # Publish to DISTANCE_TOPIC_TEMPLATE topic for each drone and save i-th client to list
         self.distance_writers = []
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to write")
+            self.get_logger().info(f"Write to {DISTANCE_TOPIC_TEMPLATE(i+1)}")
             self.distance_writers.append(self.create_publisher(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),

@@ -9,12 +9,21 @@ import numpy as np
 from Algorithms import *
 from Plot import class_name
 
-def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
-def VELOCITY_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/setpoint_velocity/cmd_vel"
-def M_ROT_TRASL_Z_GZ_DRONE(i): return np.array([[0,-1,0,0], [1,0,0,-(i+1)], [0,0,1,0], [0,0,0,1]])
-# M_ROT_TRASL_Z_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
 
-TIMESTEP = 0.1 # to put in the config file
+def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
+
+
+def VELOCITY_TOPIC_TEMPLATE(
+    id): return f"/drone{id}/mavros/setpoint_velocity/cmd_vel"
+
+
+def M_ROT_TRASL_GZ_DRONE(i): return np.array(
+    [[0, -1, 0, 0], [1, 0, 0, -(i+1)], [0, 0, 1, 0], [0, 0, 0, 1]])
+# M_ROT_TRASL_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
+
+
+TIMESTEP = 0.01  # to put in the config file # 10 ms are enough
+
 
 class Test(Node):
 
@@ -27,7 +36,8 @@ class Test(Node):
         """
         vel = received_msg.twist.linear
         self.states[3:, index] = np.array([vel.x, vel.y, vel.z])
-        self.get_logger().info(f"New velocity for drone{index+1} received")
+        self.get_logger().info(
+            f"New velocity for drone{index+1}: {str(self.states[3:, index])}")
 
     def update_positions(self):
         """
@@ -36,14 +46,14 @@ class Test(Node):
         """
         self.states[:3] += self.states[3:] * TIMESTEP
 
-
     def write_positions(self):
         """
         Send updated position via ROS2 topics
         The transformations simulate the APM conventions (rotation of pi about x)
         """
         for i in range(self.n_drones):
-            pos = M_ROT_TRASL_Z_GZ_DRONE(i) @ np.hstack((self.states[:3,i], 1))
+            pos = M_ROT_TRASL_GZ_DRONE(
+                i) @ np.hstack((self.states[:3, i], 1))
 
             pose_msg = PoseStamped()
             pose_msg.pose.position.x = pos[0]
@@ -52,7 +62,6 @@ class Test(Node):
 
             self.writers[i].publish(pose_msg)
 
-
     def cycle_callback(self):
         """
         Callback function that allows to run over time.
@@ -60,12 +69,8 @@ class Test(Node):
             -1 step: update drones position
             -2 step: write the updated position as PoseStamped message
         """
-        self.update_positions()
         self.write_positions()
-
-        self.get_logger().info("Positions updated")
-        self.get_logger().info(str(self.states))
-
+        self.update_positions()
 
     def __init__(self):
 
@@ -76,20 +81,24 @@ class Test(Node):
 
         # Parameters from ros2 command line
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
-        self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
+        self.n_drones = self.get_parameter(
+            'n_drones').get_parameter_value().integer_value
 
         self.declare_parameter('altitude', rclpy.Parameter.Type.DOUBLE)
-        self.altitude = self.get_parameter('altitude').get_parameter_value().double_value
+        self.altitude = self.get_parameter(
+            'altitude').get_parameter_value().double_value
 
         # Class attributes, initialized for allocating memory
-        self.states    = np.zeros((6, self.n_drones))               # size = 6: x, y, z, vel_x, vel_y, vel_z
+        # states = [x, y, z, vel_x, vel_y, vel_z]^T
+        self.states = np.zeros((6, self.n_drones))
         self.states[0] = np.array([range(1, self.n_drones+1)])
-        self.states[2] = np.tile(self.altitude, (1, self.n_drones)) # set z value to the one provided
-        self.writers   = np.tile(None, (self.n_drones, ))
+        self.states[1] = np.array([i % 2 for i in range(1, self.n_drones+1)])
+        self.states[2] = np.tile(self.altitude, (1, self.n_drones))
+        self.writers = np.tile(None, (self.n_drones, ))
 
         # Subscribe to VELOCITY_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {VELOCITY_TOPIC_TEMPLATE(i+1)} to read ")
+            self.get_logger().info(f"Read from {VELOCITY_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 TwistStamped,
                 VELOCITY_TOPIC_TEMPLATE(i+1),
@@ -99,7 +108,7 @@ class Test(Node):
 
         # Publish to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to write ")
+            self.get_logger().info(f"Write to {POSE_TOPIC_TEMPLATE(i+1)}")
             self.writers[i] = self.create_publisher(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
@@ -121,4 +130,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
