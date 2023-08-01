@@ -90,7 +90,6 @@ class Navigation():
         # Send the message
         self.pos_publisher[id-1].publish(pose_msg)
 
-    
     def send_setpoint_velocity(self, id, linear_x, linear_y, linear_z, angular_z):
         """
         Send position coordinates to VELOCITY_TOPIC_TEMPLATE topic.

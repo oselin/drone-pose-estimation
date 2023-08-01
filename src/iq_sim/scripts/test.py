@@ -27,8 +27,7 @@ class Test(Node):
         """
         vel = received_msg.twist.linear
         self.states[3:, index] = np.array([vel.x, vel.y, vel.z])
-        self.get_logger().info(f"New velocity for drone{index} received")
-
+        self.get_logger().info(f"New velocity for drone{index+1} received")
 
     def update_positions(self):
         """
@@ -44,7 +43,7 @@ class Test(Node):
         The transformations simulate the APM conventions (rotation of pi about x)
         """
         for i in range(self.n_drones):
-            pos = M_ROT_TRASL_Z_GZ_DRONE(i) @ np.hstack([self.states[:3], 1])
+            pos = M_ROT_TRASL_Z_GZ_DRONE(i) @ np.hstack((self.states[:3,i], 1))
 
             pose_msg = PoseStamped()
             pose_msg.pose.position.x = pos[0]
@@ -64,7 +63,8 @@ class Test(Node):
         self.update_positions()
         self.write_positions()
 
-        self.get_logger().debug("Positions updated")
+        self.get_logger().info("Positions updated")
+        self.get_logger().info(str(self.states))
 
 
     def __init__(self):
@@ -83,12 +83,13 @@ class Test(Node):
 
         # Class attributes, initialized for allocating memory
         self.states    = np.zeros((6, self.n_drones))               # size = 6: x, y, z, vel_x, vel_y, vel_z
+        self.states[0] = np.array([range(1, self.n_drones+1)])
         self.states[2] = np.tile(self.altitude, (1, self.n_drones)) # set z value to the one provided
         self.writers   = np.tile(None, (self.n_drones, ))
 
         # Subscribe to VELOCITY_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            print(f"Topic registered to {VELOCITY_TOPIC_TEMPLATE(i+1)} to read ")
+            self.get_logger().info(f"Topic registered to {VELOCITY_TOPIC_TEMPLATE(i+1)} to read ")
             self.create_subscription(
                 TwistStamped,
                 VELOCITY_TOPIC_TEMPLATE(i+1),
@@ -98,7 +99,7 @@ class Test(Node):
 
         # Publish to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            print(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to write ")
+            self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to write ")
             self.writers[i] = self.create_publisher(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),

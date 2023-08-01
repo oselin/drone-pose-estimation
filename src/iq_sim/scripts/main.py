@@ -14,7 +14,7 @@ import Algorithms
 from Plot import class_name, Plot
 
 
-def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
+def POSE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 
 
@@ -22,14 +22,16 @@ TIMESTEP = 0.5              # to put in the config.yaml file
 
 ANCHOR_MOVEMENT_TIME = 1.0  # 1 s   # to put in the config.yaml file
 
-# SWARM_COEF = np.array([np.sqrt(2), np.sqrt(2), 0])
-SWARM_COEF   = np.array([0.0, 1.0, 0.0])
+SWARM_COEF = np.array([0.0, 1.0, 0.0])
 
-ANCHOR_COEF  = np.vstack([np.eye(3), -np.eye(3)])
+ANCHOR_COEF = np.vstack([np.eye(3), -np.eye(3)])
 
 VELOCITY_MAGNITUDE = 1.0  # [m/s]   # to put in the config.yaml file
 
-def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array([[0,1,0,i+1], [-1,0,0,0], [0,0,1,0], [0,0,0,1]])
+
+def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array(
+    [[0, 1, 0, i+1], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
 
 class Main(Node):
 
@@ -40,8 +42,10 @@ class Main(Node):
         It is activated only if 'environment' is set to 'test'
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
-
+        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(
+            index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
+        self.get_logger().info(f"self.coords[:,{index}]")
+        self.get_logger().info(str(self.coords[:, index]))
 
     def distance_reader_callback(self, received_msg, index):
         """
@@ -49,7 +53,6 @@ class Main(Node):
         """
         self.DM_buffer[:, index] = np.array(received_msg.data)
 
-    
     def move_swarm(self):
         """
         Move the drone swarm by sending velcity values.
@@ -60,8 +63,8 @@ class Main(Node):
 
         # Send velocity value
         for id in range(2, self.n_drones+1):
-            self.navigation.send_setpoint_velocity(id, vel_x, vel_y, vel_z, 0.0)
-
+            self.navigation.send_setpoint_velocity(
+                id, vel_x, vel_y, vel_z, 0.0)
 
     def move_anchor(self):
         """
@@ -69,11 +72,12 @@ class Main(Node):
         The method does not affect the swarm motion.
         """
         # Compute the velocity components
-        vel_x, vel_y, vel_z = (SWARM_COEF + ANCHOR_COEF[self.phase_index]) * VELOCITY_MAGNITUDE
+        vel_x, vel_y, vel_z = (
+            SWARM_COEF + ANCHOR_COEF[self.phase_index]) * VELOCITY_MAGNITUDE
 
         # Send velocity value
-        self.navigation.send_setpoint_velocity(self.anchor_id, vel_x, vel_y, vel_z, 0.0)
-
+        self.navigation.send_setpoint_velocity(
+            self.anchor_id, vel_x, vel_y, vel_z, 0.0)
 
     def update(self):
         """
@@ -82,11 +86,19 @@ class Main(Node):
             - movement_time
             - phase_index
         """
+        if self.phase_index == 0:
+            self.offset = self.coords[:, 0]
+        
+        self.get_logger().info(f"offset")
+        self.get_logger().info(str(self.offset))
+
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         self.timestamp = time.time()
-        self.movement_time = ANCHOR_MOVEMENT_TIME + Algorithms.noise(0, self.noise_time_std, shape=1)
+        self.movement_time = ANCHOR_MOVEMENT_TIME + \
+            Algorithms.noise(0, self.noise_time_std, shape=1)
 
-        if (not self.algorithms and self.phase_index > 3): self.algorithms = True
+        if (not self.algorithms and self.phase_index > 3):
+            self.algorithms = True
 
 
     def read_distances(self):
@@ -99,7 +111,6 @@ class Main(Node):
             VELOCITY_MAGNITUDE * self.movement_time
         self.measurement_index = (self.measurement_index + 1) % 4
 
-
     def MDS(self):
         """
         Run MDS algorithm defined in the Algorithms class, by assembling the
@@ -110,12 +121,12 @@ class Main(Node):
         # Assemble the full distance matrix
         DM = Algorithms.combine_matrices(
             self.D_matrices[0],    self.D_matrices[1],    self.D_matrices[2],    self.D_matrices[3],
-            self.P_matrices[:, 0], self.P_matrices[:, 1], self.P_matrices[:, 2], self.P_matrices[:, 3]
-            )
+            self.P_matrices[:, 0], self.P_matrices[:,
+                                                   1], self.P_matrices[:, 2], self.P_matrices[:, 3]
+        )
 
         return Algorithms.MDS(DM, self.P_matrices), None
 
-    
     def WLP(self):
         """
         Run WLP algorithm defined in the Algorithms class, by assembling the
@@ -126,11 +137,11 @@ class Main(Node):
         # Assemble the full distance matrix
         DM = Algorithms.combine_matrices(
             self.D_matrices[0],    self.D_matrices[1],    self.D_matrices[2],    self.D_matrices[3],
-            self.P_matrices[:, 0], self.P_matrices[:, 1], self.P_matrices[:, 2], self.P_matrices[:, 3]
-            )
+            self.P_matrices[:, 0], self.P_matrices[:,
+                                                   1], self.P_matrices[:, 2], self.P_matrices[:, 3]
+        )
 
         return Algorithms.WLP(DM, self.P_matrices), None
-
 
     def cycle_callback(self):
         """
@@ -140,7 +151,7 @@ class Main(Node):
         self.move_swarm()
 
         if ((time.time() - self.timestamp) >= self.movement_time):
-            
+
             # Update distance matrices and anchors positions
             self.read_distances()
 
@@ -149,18 +160,20 @@ class Main(Node):
                 X_mds, Cov_mds = self.MDS()
                 X_wlp, Cov_wlp = self.WLP()
 
-                if (self.environment == 'test'):
-                    tmp = self.coords - self.coords[:,0].reshape(-1,1)
-                    self.plot.update(true_coords=tmp, MDS_coords=X_mds, WLP_coords=X_wlp, MDS_cov=None, WLP_cov=None)
-                    print("X_MDS")
-                    print(X_mds)
-                    print()
+                tmp = self.coords - self.offset.reshape(-1,1)
+                self.coords[:, 0].reshape(-1, 1)
+                self.plot.update(true_coords=tmp, MDS_coords=X_mds,
+                                    WLP_coords=X_wlp, MDS_cov=None, WLP_cov=None)
+                print("X_MDS")
+                print(X_mds)
+                print()
+
             # update_plots()
             self.update()
-            #self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
+            # self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
         else:
+            pass
             self.move_anchor()
-
 
     def initialize_swarm(self):
         """
@@ -169,7 +182,8 @@ class Main(Node):
             -2) Arm the throttles
             -3) Take off to specified altitude
         """
-        for id in range(1, self.n_drones+1): self.navigation.set_mode(id, "GUIDED")
+        for id in range(1, self.n_drones+1):
+            self.navigation.set_mode(id, "GUIDED")
 
         for id in range(1, self.n_drones+1):
             self.navigation.arm(id)
@@ -177,44 +191,55 @@ class Main(Node):
 
         time.sleep(40.0)  # time to go up
 
-
     def __init__(self):
 
         # Declare the ROS2 node
         class_name(self)
         super().__init__('main')
         print("Node that reads the distances, computes the coordinates, plots the results and guides the drones.")
-        
+
         # Parameters from ROS2 command line
-        self.declare_parameter('environment', 'gazebo')     # rclpy.Parameter.Type.STRING
-        self.environment = self.get_parameter('environment').get_parameter_value().string_value
-        
-        self.declare_parameter('n_drones', 2)               # rclpy.Parameter.Type.INTEGER
-        self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
+        # rclpy.Parameter.Type.STRING
+        self.declare_parameter('environment', 'gazebo')
+        self.environment = self.get_parameter(
+            'environment').get_parameter_value().string_value
 
-        self.declare_parameter('altitude', 5.0)             # rclpy.Parameter.Type.DOUBLE
-        self.altitude = self.get_parameter('altitude').get_parameter_value().double_value
+        # rclpy.Parameter.Type.INTEGER
+        self.declare_parameter('n_drones', 2)
+        self.n_drones = self.get_parameter(
+            'n_drones').get_parameter_value().integer_value
 
-        self.declare_parameter('noise_dist_std', 0.0)       # rclpy.Parameter.Type.DOUBLE
-        self.noise_dist_std = self.get_parameter('noise_dist_std').get_parameter_value().double_value
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('altitude', 5.0)
+        self.altitude = self.get_parameter(
+            'altitude').get_parameter_value().double_value
 
-        self.declare_parameter('noise_time_std', 0.0)       # rclpy.Parameter.Type.DOUBLE
-        self.noise_time_std = self.get_parameter('noise_time_std').get_parameter_value().double_value
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('noise_dist_std', 0.0)
+        self.noise_dist_std = self.get_parameter(
+            'noise_dist_std').get_parameter_value().double_value
 
-        
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('noise_time_std', 0.0)
+        self.noise_time_std = self.get_parameter(
+            'noise_time_std').get_parameter_value().double_value
+
         # Attributes initialization
         self.phase_index, self.measurement_index = 0, 0
         self.anchor_id = 1
         self.movement_time = ANCHOR_MOVEMENT_TIME
         self.algorithms = False
 
+        self.coords = np.ones((3, self.n_drones))
+        self.offset = np.zeros((3,))
         self.P_matrices = np.zeros((3, 4))
         self.D_matrices = np.zeros((4, self.n_drones, self.n_drones))
-        self.DM_buffer  = np.zeros((self.n_drones, self.n_drones))
+        self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to read ")
+            self.get_logger().info(
+                f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to read ")
             self.create_subscription(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
@@ -222,25 +247,26 @@ class Main(Node):
                 qos_profile_system_default
             )
 
+        # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
+        for i in range(self.n_drones):
+            self.get_logger().info(
+                f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
+            self.create_subscription(
+                PoseStamped,
+                POSE_TOPIC_TEMPLATE(i+1),
+                lambda msg, i=i: self.pose_reader_callback(msg, i),
+                qos_profile_system_default
+            )
+
         # Initialize Navigation object
-        self.navigation = Navigation(node=self, n_drones=self.n_drones, timeout=10)
+        self.navigation = Navigation(
+            node=self, n_drones=self.n_drones, timeout=10)
+        if (self.environment == "gazebo"):
+            self.initialize_swarm()
 
         # Initialize Plot object
-        self.plot = Plot(mode='3D', display_MDS=True, display_WLP=True, )
-
-        if (self.environment == "gazebo"): self.initialize_swarm()
-        else: 
-            self.coords = np.ones((3, self.n_drones))   
-
-            # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
-            for i in range(self.n_drones):
-                self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
-                self.create_subscription(
-                    PoseStamped,
-                    POSE_TOPIC_TEMPLATE(i+1),
-                    lambda msg, i=i: self.pose_reader_callback(msg, i),
-                    qos_profile_system_default
-                )
+        self.plot = Plot(mode='2D', display_MDS=True,
+                         display_WLP=True, reduction_method='xy')
 
         # Initialize timer
         self.timestamp = time.time()

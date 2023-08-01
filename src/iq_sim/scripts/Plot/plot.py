@@ -101,6 +101,9 @@ class Plot():
                 axis.scatter(t[0], t[1], c="red")         # Plot true coordinates
                 axis.scatter(d[0], d[1], c="black")       # Plot estimated coordinates
 
+                axis.set_xlim([-2,2])
+                axis.set_ylim([-2,12])
+
                 if (self.__display_cov): self.__draw_covariance(frame=frame, confidence=0.95)
             else:
                 axis.scatter(self.__true_coords[0],  self.__true_coords[1],  self.__true_coords[2],  c="red"  ) # Plot true coordinates
