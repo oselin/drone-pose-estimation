@@ -18,18 +18,18 @@ def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/distances"
 
 
-TIMESTEP = 0.1
-ANCHOR_MOVEMENT_TIME = 1.0  # 1 s
+TIMESTEP = 0.05
+ANCHOR_MOV_TIME = 1  # 1 s
 
 SWARM_COEF = np.array([0.0, 1.0, 0.0])
-ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
+ANCHOR_COEF = np.vstack([-np.eye(3),np.eye(3)])
 
-SWARM_VELOCITY_MAGNITUDE = 0.5  # [m/s]
-ANCHOR_VELOCITY_MAGNITUDE = 1.0
+SWARM_VEL = 0.0  # [m/s]
+ANCHOR_VEL = 0.5
 
 
 def M_ROT_TRASL_DRONE_GZ(i): return np.array(
-    [[0, 1, 0, i+1], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    [[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
 
 class Main(Node):
@@ -43,7 +43,7 @@ class Main(Node):
         pos = received_msg.pose.position
         self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(
             index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
-
+    
     def distance_reader_callback(self, received_msg, index):
         """
         Update the Distance Matrix (DM) buffer by replacing the i-th columnn.
@@ -66,30 +66,35 @@ class Main(Node):
 
         time.sleep(40.0)  # time to go up
 
-    def update(self, timestep):
+    def update(self, new_timestamp):
         """
         Update the following class parameters:
-            - distance matrix
             - anchor position
-            - measurement_index
-            - phase_index
+            - distance matrix
+            - measurement index
+            - phase index
             - offset
-            - movement_time
+            - movement time
             - timestamp
         """
-        self.D_matrices[self.measurement_index] = np.copy(self.DM_buffer)
+        # practically
+        self.PMs[:, self.meas_index] = self.PMs[:, self.meas_index -
+                                                1] + ANCHOR_COEF[self.phase_index] * ANCHOR_VEL * self.mov_time
+        self.DMs[self.meas_index] = np.copy(self.DM_buffer)
 
-        self.P_matrices[:, self.measurement_index] = self.P_matrices[:, self.measurement_index -
-                                                                     1] + ANCHOR_COEF[self.phase_index] * ANCHOR_VELOCITY_MAGNITUDE * timestep
+        # ideally
+        # # # self.PMs[:, self.meas_index] = self.coords[:, 0]
+        # # # self.DMs[self.meas_index] = Algorithms.distance_matrix(self.coords)
 
-        self.measurement_index = (self.measurement_index + 1) % 4
+        self.meas_index = (self.meas_index + 1) % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
 
-        self.movement_time = ANCHOR_MOVEMENT_TIME + \
-            Algorithms.noise(0, self.noise_time_std, shape=1)
-
+        # print("Time difference:")
+        # print(new_timestamp-self.timestamp)
+        noise_time = Algorithms.noise(0, self.noise_time_std, shape=1)
+        self.mov_time = ANCHOR_MOV_TIME + noise_time
         self.offset = np.copy(self.coords[:, 0])
-        self.timestamp = time.time()
+        self.timestamp = new_timestamp
 
         if (not self.algorithms and self.phase_index > 3):
             self.algorithms = True
@@ -103,12 +108,11 @@ class Main(Node):
         """
         # Assemble the full distance matrix
         DM = Algorithms.combine_matrices(
-            self.D_matrices[0],    self.D_matrices[1],    self.D_matrices[2],    self.D_matrices[3],
-            self.P_matrices[:, 0], self.P_matrices[:,
-                                                   1], self.P_matrices[:, 2], self.P_matrices[:, 3]
+            self.DMs[0], self.DMs[1], self.DMs[2], self.DMs[3],
+            self.PMs[:, 0], self.PMs[:, 1], self.PMs[:, 2], self.PMs[:, 3]
         )
 
-        return Algorithms.MDS(DM, self.P_matrices), None
+        return Algorithms.MDS(DM, self.PMs), None
 
     def WLP(self):
         """
@@ -119,12 +123,11 @@ class Main(Node):
         """
         # Assemble the full distance matrix
         DM = Algorithms.combine_matrices(
-            self.D_matrices[0],    self.D_matrices[1],    self.D_matrices[2],    self.D_matrices[3],
-            self.P_matrices[:, 0], self.P_matrices[:,
-                                                   1], self.P_matrices[:, 2], self.P_matrices[:, 3]
+            self.DMs[0], self.DMs[1], self.DMs[2], self.DMs[3],
+            self.PMs[:, 0], self.PMs[:, 1], self.PMs[:, 2], self.PMs[:, 3]
         )
 
-        return Algorithms.WLP(DM, self.P_matrices), None
+        return Algorithms.WLP(DM, self.PMs), None
 
     def move_swarm(self):
         """
@@ -132,7 +135,7 @@ class Main(Node):
         The method does not affect the anchor motion.
         """
         # Compute the velocity components
-        vel_x, vel_y, vel_z = SWARM_COEF*SWARM_VELOCITY_MAGNITUDE
+        vel_x, vel_y, vel_z = SWARM_COEF*SWARM_VEL
 
         # Send velocity value
         for id in range(2, self.n_drones+1):
@@ -145,8 +148,8 @@ class Main(Node):
         The method does not affect the swarm motion.
         """
         # Compute the velocity components
-        vel_x, vel_y, vel_z = SWARM_COEF * SWARM_VELOCITY_MAGNITUDE + \
-            ANCHOR_COEF[self.phase_index] * ANCHOR_VELOCITY_MAGNITUDE
+        vel_x, vel_y, vel_z = SWARM_COEF * SWARM_VEL + \
+            ANCHOR_COEF[self.phase_index] * ANCHOR_VEL
 
         # Send velocity value
         self.navigation.send_setpoint_velocity(
@@ -158,11 +161,10 @@ class Main(Node):
         """
         # guide the swarm
 
-        # a = -self.get_clock().now().to_msg().sec-self.get_clock().now().to_msg().nanosec/1e9
-        
-        if ((time.time() - self.timestamp) >= self.movement_time):
+        now_timestamp = self.get_timestamp()
+        if ((now_timestamp - self.timestamp) >= self.mov_time):
             # Update distance matrices, anchors positions and indicicies
-            self.update(timestep = time.time() - self.timestamp)
+            self.update(new_timestamp=now_timestamp)
 
             # Run algorithms
             if (self.algorithms):
@@ -172,13 +174,14 @@ class Main(Node):
                 self.coords[:, 0].reshape(-1, 1)
                 self.plot.update(
                     true_coords=np.copy(self.coords),
-                    MDS_coords=X_mds + self.offset.reshape(-1, 1),
-                    WLP_coords=X_wlp + self.offset.reshape(-1, 1),
+                    MDS_coords=X_mds,  # + self.offset.reshape(-1, 1),
+                    WLP_coords=X_wlp,  # + self.offset.reshape(-1, 1),
                     MDS_cov=None,
                     WLP_cov=None
                 )
 
-            self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
+            self.get_logger().info(f"New phase index: {self.phase_index}")
+            self.get_logger().info(f"  Anchor moved: {str(self.coords[:, 0])}")
 
         self.move_swarm()
         self.move_anchor()
@@ -219,15 +222,16 @@ class Main(Node):
             'noise_time_std').get_parameter_value().double_value
 
         # Attributes initialization
-        self.phase_index, self.measurement_index = 0, 0
+        self.phase_index, self.meas_index = 0, 0
         self.anchor_id = 1
-        self.movement_time = ANCHOR_MOVEMENT_TIME
+        self.n_meas = 4
+        self.mov_time = ANCHOR_MOV_TIME
         self.algorithms = False
 
-        self.coords = np.ones((3, self.n_drones))
+        self.coords = np.zeros((3, self.n_drones))
         self.offset = np.zeros((3,))
-        self.P_matrices = np.zeros((3, 4))
-        self.D_matrices = np.zeros((4, self.n_drones, self.n_drones))
+        self.PMs = np.zeros((3, self.n_meas))
+        self.DMs = np.zeros((self.n_meas, self.n_drones, self.n_drones))
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
@@ -262,8 +266,13 @@ class Main(Node):
         self.plot = Plot(mode='2D', display_MDS=True,
                          display_WLP=True, reduction_method='xy')
 
-        # Initialize timer
-        self.timestamp = time.time()
+        # Timestamps
+        def get_timestamp():
+            now = self.get_clock().now().to_msg()
+            return now.sec+now.nanosec/1e9
+        self.get_timestamp = get_timestamp
+
+        self.timestamp = self.get_timestamp()
 
         # Start the plot thread
         self.plot.start()

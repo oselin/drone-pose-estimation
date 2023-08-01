@@ -13,40 +13,43 @@ from Plot import class_name
 def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
 
 
-def VELOCITY_TOPIC_TEMPLATE(
+def VEL_TOPIC_TEMPLATE(
     id): return f"/drone{id}/mavros/setpoint_velocity/cmd_vel"
 
 
 def M_ROT_TRASL_GZ_DRONE(i): return np.array(
-    [[0, -1, 0, 0], [1, 0, 0, -(i+1)], [0, 0, 1, 0], [0, 0, 0, 1]])
+    [[0, -1, 0, 0], [1, 0, 0, -i], [0, 0, 1, 0], [0, 0, 0, 1]])
 # M_ROT_TRASL_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
 
 
-TIMESTEP = 0.01  # to put in the config file # 10 ms are enough
+TIMESTEP = 0.05 # to put in the config file # 10 ms are enough
 
 
 class Test(Node):
 
     def velocity_reader_callback(self, received_msg, index):
         """
-        Function to handle incoming messages from VELOCITY_TOPIC_TEMPLATE topics
+        Function to handle incoming messages from VEL_TOPIC_TEMPLATE topics
         Parameters:
             - received_msg: message coming from topic
             - index: drone index generated at subscription time
         """
         vel = received_msg.twist.linear
         self.states[3:, index] = np.array([vel.x, vel.y, vel.z])
-        self.get_logger().info(
-            f"New velocity for drone{index+1}: {str(self.states[3:, index])}")
+        self.get_logger().debug(f"New velocity drone{index+1}: {str(vel)}")
 
-    def update_positions(self):
+    def update(self):
         """
         Integrator of first order: s = v * t
         states variable stores information as following: [x, y, z, vel_x, vel_y, vel_z]
         """
-        self.states[:3] += self.states[3:] * TIMESTEP
+        now_timestamp = self.get_timestamp()
+        timestep = now_timestamp - self.timestamp
+        self.states[:3] += self.states[3:] * timestep
+        
+        self.timestamp = now_timestamp
 
-    def write_positions(self):
+    def write(self):
         """
         Send updated position via ROS2 topics
         The transformations simulate the APM conventions (rotation of pi about x)
@@ -69,8 +72,8 @@ class Test(Node):
             -1 step: update drones position
             -2 step: write the updated position as PoseStamped message
         """
-        self.write_positions()
-        self.update_positions()
+        self.update()
+        self.write()
 
     def __init__(self):
 
@@ -84,24 +87,25 @@ class Test(Node):
         self.n_drones = self.get_parameter(
             'n_drones').get_parameter_value().integer_value
 
-        self.declare_parameter('altitude', rclpy.Parameter.Type.DOUBLE)
-        self.altitude = self.get_parameter(
-            'altitude').get_parameter_value().double_value
-
         # Class attributes, initialized for allocating memory
         # states = [x, y, z, vel_x, vel_y, vel_z]^T
         self.states = np.zeros((6, self.n_drones))
-        self.states[0] = np.array([range(1, self.n_drones+1)])
-        self.states[1] = np.array([i % 2 for i in range(1, self.n_drones+1)])
-        self.states[2] = np.tile(self.altitude, (1, self.n_drones))
+        self.states[0] = np.array([range(self.n_drones)])
         self.writers = np.tile(None, (self.n_drones, ))
 
-        # Subscribe to VELOCITY_TOPIC_TEMPLATE topic for each drone
+        def get_timestamp():
+            now = self.get_clock().now().to_msg()
+            return now.sec+now.nanosec/1e9
+        self.get_timestamp = get_timestamp
+        
+        self.timestamp = self.get_timestamp()
+
+        # Subscribe to VEL_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(f"Read from {VELOCITY_TOPIC_TEMPLATE(i+1)}")
+            self.get_logger().info(f"Read from {VEL_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 TwistStamped,
-                VELOCITY_TOPIC_TEMPLATE(i+1),
+                VEL_TOPIC_TEMPLATE(i+1),
                 lambda msg, i=i: self.velocity_reader_callback(msg, i),
                 qos_profile_system_default
             )

@@ -22,9 +22,10 @@ cd $SCRIPTPATH/../../..
 colcon build
 
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
+# altitude just creates confusion, let's skip it
 echo
 echo 'Launching test.py...'
-gnome-terminal --tab -- bash -c "ros2 run iq_sim test.py --ros-args -p n_drones:=$1 -p altitude:=5.0"
+gnome-terminal --tab -- bash -c "ros2 run iq_sim test.py --ros-args -p n_drones:=$1"
 echo 'main.py launched!'
 
 # Launch ROS2 node to calculate the distances from the drones' coordinates
@@ -36,5 +37,5 @@ echo 'hub launched!'
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
 echo
 echo 'Launching main.py...'
-gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p environment:='test' -p n_drones:=$1 -p altitude:=5.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
+gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p environment:='test' -p n_drones:=$1 -p altitude:=0.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
 echo 'main.py launched!'

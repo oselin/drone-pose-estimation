@@ -99,7 +99,7 @@ class Plot():
                 d = self.__data_to_2D(data)               # reduce to 2D
                 
                 axis.scatter(t[0], t[1], c="red")         # Plot true coordinates
-                axis.scatter(d[0], d[1], c="black")       # Plot estimated coordinates
+                axis.scatter(d[0], d[1], c="black", s=5)       # Plot estimated coordinates
 
                 y_center = self.__true_coords[1,1]
                 axis.set_xlim([-2,20]) # ([-2,2])
