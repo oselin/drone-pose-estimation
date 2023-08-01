@@ -101,9 +101,17 @@ class Main(Node):
         """
         self.D_matrices[self.measurement_index] = np.copy(self.DM_buffer)
         
-        self.P_matrices[:, (self.measurement_index + 1) % 4] = self.P_matrices[:, self.measurement_index] + ANCHOR_COEF[self.phase_index] * \
-            VELOCITY_MAGNITUDE * self.movement_time
+        print(f"Old measurement index {self.measurement_index}")
+        print(f"Old column to be rewritten: {self.P_matrices[:, self.measurement_index]}")
+        print(f"Operation: {self.P_matrices[:, self.measurement_index -1]} + {ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time}")
+        self.P_matrices[:, self.measurement_index] = self.P_matrices[:, self.measurement_index -1] +  \
+            ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time
+
         self.measurement_index = (self.measurement_index + 1) % 4
+        print(f"measurement index updated to {self.measurement_index}")
+        print(self.P_matrices)
+        print()
+
 
     def MDS(self):
         """
@@ -143,14 +151,6 @@ class Main(Node):
         """
         # guide the swarm
         self.move_swarm()
-        print("phase_index")
-        print(str(self.phase_index))
-
-        print("P_matrices")
-        print(str(self.P_matrices))
-
-        # print("D_matr")
-        # print(str(self.D_matrices))
 
         if ((time.time() - self.timestamp) >= self.movement_time):
 
@@ -165,10 +165,8 @@ class Main(Node):
                 self.coords[:, 0].reshape(-1, 1)
                 self.plot.update(true_coords=self.coords, MDS_coords=X_mds+self.offset.reshape(-1, 1),
                                  WLP_coords=X_wlp+self.offset.reshape(-1, 1), MDS_cov=None, WLP_cov=None)
-                print("X_MDS")
-                print(X_mds)
-                print()
-
+                
+                
             # update_plots()
             self.update()
             # self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
