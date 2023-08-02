@@ -16,9 +16,18 @@ def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 def M_ROT_TRASL_DRONE_GZ(i): return np.array([[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
-TIMESTEP = 0.05
+TIMESTEP = 0.02
 
 class Hub(Node):
+
+    def pose_reader_callback(self, received_msg, index):
+        """
+        Callaback function for the POSE_TOPIC_TEMPLATE topic.
+        Save the information sent over the topic in the coords data structure.
+        """
+        pos = received_msg.pose.position
+        self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
+
 
     def write_distances(self):
         """
@@ -29,13 +38,8 @@ class Hub(Node):
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
 
-    def pose_reader_callback(self, received_msg, index):
-        """
-        Callaback function for the POSE_TOPIC_TEMPLATE topic.
-        Save the information sent over the topic in the coords data structure.
-        """
-        pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
+    def update_distances(self):
+        self.distances = Algorithms.distance_matrix(self.coords) + Algorithms.noise(0, 0.0, shape=self.distances.shape)
 
     def cycle_callback(self):
         """
@@ -43,7 +47,7 @@ class Hub(Node):
             -1) Convert coordinates in distances
             -2) Send distances over the proper topic, as UWB sensor information
         """
-        self.distances = Algorithms.distance_matrix(self.coords)
+        self.update_distances()
         self.write_distances()
 
 
@@ -59,11 +63,11 @@ class Hub(Node):
         self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
 
         # self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
-        # self.noise    = self.get_parameter('noise').get_parameter_value().string_value
+        # self.noise = self.get_parameter('noise').get_parameter_value().string_value
 
         # Pre-allocation of memory
-        self.distances = np.ones((self.n_drones, self.n_drones))         
-        self.coords = np.ones((3, self.n_drones))   
+        self.distances = np.zeros((self.n_drones, self.n_drones))         
+        self.coords = np.zeros((3, self.n_drones))   
 
         # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
