@@ -14,16 +14,9 @@ from Plot import class_name
 
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
-def M_ROT_TRASL_Z_DRONE_GZ(i): return np.array([[0,1,0,i+1], [-1,0,0,0], [0,0,-1,0], [0,0,0,1]])
+def M_ROT_TRASL_DRONE_GZ(i): return np.array([[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
-
-# array([[ 0., -1.,  0.,  0.],
-#        [ 1.,  0.,  0., -4.],
-#        [ 0.,  0.,  1.,  0.],
-#        [ 0.,  0.,  0.,  1.]])
-
-TIMESTEP = 0.5
-
+TIMESTEP = 0.05
 
 class Hub(Node):
 
@@ -36,14 +29,13 @@ class Hub(Node):
             msg.data = self.distances[:, i].tolist()
             self.distance_writers[i].publish(msg)
 
-
     def pose_reader_callback(self, received_msg, index):
         """
         Callaback function for the POSE_TOPIC_TEMPLATE topic.
         Save the information sent over the topic in the coords data structure.
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
+        self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
 
     def cycle_callback(self):
         """
@@ -75,7 +67,7 @@ class Hub(Node):
 
         # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {POSE_TOPIC_TEMPLATE(i+1)} to read")
+            self.get_logger().info(f"Read from {POSE_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
@@ -86,7 +78,7 @@ class Hub(Node):
         # Publish to DISTANCE_TOPIC_TEMPLATE topic for each drone and save i-th client to list
         self.distance_writers = []
         for i in range(self.n_drones):
-            self.get_logger().info(f"Topic registered to {DISTANCE_TOPIC_TEMPLATE(i+1)} to write")
+            self.get_logger().info(f"Write to {DISTANCE_TOPIC_TEMPLATE(i+1)}")
             self.distance_writers.append(self.create_publisher(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
