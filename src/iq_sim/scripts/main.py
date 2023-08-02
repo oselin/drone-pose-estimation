@@ -42,8 +42,7 @@ class Main(Node):
         It is activated only if 'environment' is set to 'test'
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(
-            index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
+        self.coords[:, index] = (M_ROT_TRASL_Z_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
 
     def distance_reader_callback(self, received_msg, index):
         """
@@ -84,8 +83,7 @@ class Main(Node):
             - movement_time
             - phase_index
         """
-        if self.phase_index == 0:
-            self.offset = np.copy(self.coords[:, 0])
+        self.offset = np.copy(self.coords[:, 0])
 
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         
@@ -94,23 +92,23 @@ class Main(Node):
 
         if (not self.algorithms and self.phase_index > 3): self.algorithms = True
 
+
     def read_distances(self):
         """
         Update the distances matrix read at phase phase_index and store it,
         as well as the anchor position. 
         """
-        self.D_matrices[self.measurement_index] = np.copy(self.DM_buffer)
-        
-        print(f"Old measurement index {self.measurement_index}")
-        print(f"Old column to be rewritten: {self.P_matrices[:, self.measurement_index]}")
-        print(f"Operation: {self.P_matrices[:, self.measurement_index -1]} + {ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time}")
-        self.P_matrices[:, self.measurement_index] = self.P_matrices[:, self.measurement_index -1] +  \
-            ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time
+        self.D_matrices[self.measurement_index] = np.copy(Algorithms.distance_matrix(self.coords))
+         #np.copy(self.DM_buffer)
+
+        # self.P_matrices[:, self.measurement_index] = self.P_matrices[:, self.measurement_index -1] +  \
+        #     ANCHOR_COEF[self.phase_index] * VELOCITY_MAGNITUDE * self.movement_time *0.8
+
+        self.P_matrices[:, self.measurement_index] = np.copy(self.coords[:,0])
 
         self.measurement_index = (self.measurement_index + 1) % 4
-        print(f"measurement index updated to {self.measurement_index}")
-        print(self.P_matrices)
-        print()
+
+
 
 
     def MDS(self):
@@ -123,9 +121,10 @@ class Main(Node):
         # Assemble the full distance matrix
         DM = Algorithms.combine_matrices(
             self.D_matrices[0],    self.D_matrices[1],    self.D_matrices[2],    self.D_matrices[3],
-            self.P_matrices[:, 0], self.P_matrices[:,
-                                                   1], self.P_matrices[:, 2], self.P_matrices[:, 3]
-        )
+            self.P_matrices[:, 0], 
+            self.P_matrices[:, 1], 
+            self.P_matrices[:, 2], self.P_matrices[:, 3]
+        ) 
 
         return Algorithms.MDS(DM, self.P_matrices), None
 
@@ -149,30 +148,37 @@ class Main(Node):
         """
         Node main loop.
         """
-        # guide the swarm
-        self.move_swarm()
 
-        if ((time.time() - self.timestamp) >= self.movement_time):
+        
+        if ((time.time() - self.timestamp) >= 1): #self.movement_time):
 
             # Update distance matrices and anchors positions
             self.read_distances()
 
             # Run algorithms
             if (self.algorithms):
-                X_mds, Cov_mds = self.MDS()
-                X_wlp, Cov_wlp = self.WLP()
+                if (self.phase_index == 0):
+                    X_mds, Cov_mds = self.MDS()
+                    X_wlp, Cov_wlp = self.WLP()
+                    
+                    # tmp_a = X_mds + self.offset.reshape(-1, 1)
+                    # tmp_b = X_wlp + self.offset.reshape(-1, 1)
+                    
+                    # print(f"TRUE ANCHOR: {self.coords[:,0]}")
+                    # print(f"MDS  ANCHOR: {X_mds[:,0]}")
+                    # print(f"MDS+off ANC: {tmp_a[:,0]}")                
+                    self.plot.update(true_coords=np.copy(self.coords[:,1:]), MDS_coords=np.copy(X_mds[:,1:]),
+                                    WLP_coords=X_wlp+self.offset.reshape(-1, 1), MDS_cov=None, WLP_cov=None)
+                    print(self.P_matrices)
 
-                self.coords[:, 0].reshape(-1, 1)
-                self.plot.update(true_coords=self.coords, MDS_coords=X_mds+self.offset.reshape(-1, 1),
-                                 WLP_coords=X_wlp+self.offset.reshape(-1, 1), MDS_cov=None, WLP_cov=None)
-                
-                
-            # update_plots()
             self.update()
+
             # self.get_logger().info("Anchor moved; new phase index: %i" % self.phase_index)
         else:
-            pass
+            # guide the swarm
+            self.move_swarm()
             self.move_anchor()
+
 
     def initialize_swarm(self):
         """
@@ -270,6 +276,7 @@ class Main(Node):
         # Initialize timer
         self.timestamp = time.time()
 
+        self.step = 0
         # Start the plot thread
         self.plot.start()
 

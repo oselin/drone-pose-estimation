@@ -34,7 +34,7 @@ class Test(Node):
         Integrator of first order: s = v * t
         states variable stores information as following: [x, y, z, vel_x, vel_y, vel_z]
         """
-        self.states[:3] += self.states[3:] * TIMESTEP
+        self.states[:3] += np.copy(self.states[3:]) * TIMESTEP
 
 
     def write_positions(self):
