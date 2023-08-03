@@ -19,6 +19,8 @@ def VEL_TOPIC_TEMPLATE(
 
 def M_ROT_TRASL_GZ_DRONE(i): return np.array(
     [[0, -1, 0, 0], [1, 0, 0, -i], [0, 0, 1, 0], [0, 0, 0, 1]])
+def M_ROT_TRASL_GZ_DRONE(i): return np.eye(4)
+
 # M_ROT_TRASL_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
 
 

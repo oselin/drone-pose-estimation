@@ -8,6 +8,8 @@ import rclpy
 
 import numpy as np
 import time
+import threading
+
 
 from Control import Navigation
 import Algorithms
@@ -18,8 +20,8 @@ def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/distances"
 
 
-TIMESTEP = 0.05
-CHECK_UPDATE_TIME = 1.0
+TIMESTEP = 0.1
+CHECK_UPDATE_TIME = 5
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
 SWARM_COEF = np.array([0.0, 1.0, 0.0])
@@ -36,13 +38,15 @@ ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 # ])
 
 
-SWARM_VEL = 0.0  # [m/s]
+SWARM_VEL = 0.2  # [m/s]
 ANCHOR_VEL = 1.0
 
 
 def M_ROT_TRASL_DRONE_GZ(i): return np.array(
     [[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
+
+def M_ROT_TRASL_DRONE_GZ(i): return np.eye(4)
 
 class Main(Node):
 
@@ -94,9 +98,10 @@ class Main(Node):
         """
         # New measure
         # practically
-        prev_pos = self.PMs[:, self.meas_index - 1] 
-        anchor_mov = ANCHOR_COEF[self.phase_index] * ANCHOR_VEL * self.anchor_timestep 
-        self.PMs[:, self.meas_index] = prev_pos + anchor_mov + self.offset
+        prev_pos = self.PMs[:, self.meas_index - 1]
+        anchor_mov = ANCHOR_COEF[self.phase_index] * \
+            ANCHOR_VEL * self.anchor_timestep
+        self.PMs[:, self.meas_index] = prev_pos + anchor_mov
 
         self.DMs[self.meas_index] = np.copy(self.DM_buffer)
 
@@ -122,7 +127,7 @@ class Main(Node):
             WLP_cov=None
         )
 
-        # Reset the booleans  
+        # Reset the booleans
         self.update_booleans[:] = False
 
         # Update cycle management
@@ -135,7 +140,6 @@ class Main(Node):
         Check whether the distances vectors for all the drones have been received. In case, update the estimation and move the anchor.
         """
         if np.all(self.update_booleans):
-            # avoid calling the function other times
             self.check_update_timer.cancel()
             self.update()
             self.updating = False
@@ -147,13 +151,17 @@ class Main(Node):
         Return:
             - Coordinates of the drones swarm estimated via the algorithm.
         """
+        # Shift based on the meas index
+        DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
+        PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
+
         # Assemble the full distance matrix
         DM = Algorithms.combine_matrices(
-            self.DMs[0], self.DMs[1], self.DMs[2], self.DMs[3],
-            self.PMs[:, 0], self.PMs[:, 1], self.PMs[:, 2], self.PMs[:, 3]
+            DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
+            PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
         )
 
-        return Algorithms.MDS(DM, self.PMs), None
+        return Algorithms.MDS(DM, PMs_tmp), None
 
     def WLP(self):
         """
@@ -178,14 +186,10 @@ class Main(Node):
         # Compute the velocity components
         vel_x, vel_y, vel_z = SWARM_COEF*SWARM_VEL
 
-        # Send velocity value
-        for id in range(2, self.n_drones+1):
+        # Send velocity value to all the drones and to the anchor, in case it's flagged
+        for id in range(2-int(anchor), self.n_drones+1):
             self.navigation.send_setpoint_velocity(
                 id, vel_x, vel_y, vel_z, 0.0)
-
-        if anchor:
-            self.navigation.send_setpoint_velocity(
-                1, vel_x, vel_y, vel_z, 0.0)
 
     def move_anchor(self):
         """
@@ -202,9 +206,8 @@ class Main(Node):
 
     def cycle_callback(self):
         """
-        Node main loop.
-        """
-        # update positions and perform measurments
+        Node main loop. Update positions and perform measurments.
+        """    
         if self.updating:
             # move all the drones simultaneously
             self.move_swarm(anchor=True)
@@ -232,9 +235,10 @@ class Main(Node):
         # in any case the swarm has been moved
         self.offset += SWARM_COEF * SWARM_VEL * TIMESTEP
 
-
     def start(self):
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+        self.a = self.get_timestamp()
+        self.counter = 1
         self.timestamp = self.get_timestamp()
         self.start_timer.cancel()
 
@@ -279,6 +283,7 @@ class Main(Node):
         self.mov_time = ANCHOR_MOV_TIME
         self.algorithms = False
         self.updating = False
+
         self.update_booleans = np.zeros((self.n_drones,), dtype=bool)
 
         # measurements

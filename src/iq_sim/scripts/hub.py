@@ -15,6 +15,7 @@ from Plot import class_name
 def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
 def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
 def M_ROT_TRASL_DRONE_GZ(i): return np.array([[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+def M_ROT_TRASL_DRONE_GZ(i): return np.eye(4)
 
 TIMESTEP = 0.02
 
