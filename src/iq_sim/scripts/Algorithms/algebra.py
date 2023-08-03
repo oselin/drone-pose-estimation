@@ -5,8 +5,9 @@ from scipy.optimize import minimize
 
 
 def noise(mean=0, std=0.01, shape=[3, 1]):
-    return np.random.normal(mean, std, size=[shape, shape])
-
+    if type(shape) == int:
+        return np.random.normal(mean, std, size=[shape, shape])
+    return np.random.normal(mean, std, size=shape)
 
 def get_distance(point1: np.array, point2: np.array):
     """
@@ -201,46 +202,91 @@ def MDS(distance_matrix, anchor_pos, true_pos=None):
     # P = anchors from the relative map
     # Q = true position of the anchors
 
-    # # # p = np.hstack([S[:, 0].reshape(-1, 1), S[:, -3:]])
-    # # # q = anchor_pos
+    p = np.hstack([S[:, 0].reshape(-1, 1), S[:, -3:]])
+    q = anchor_pos
 
-    # # # p_bar, q_bar = 1/4*np.sum(p, axis=1).reshape(-1, 1), 1 / \
-    # # #     4*np.sum(q, axis=1).reshape(-1, 1)
-    # # # P_prime = p - p_bar
-    # # # Q_prime = q - q_bar
+    p_bar, q_bar = 1/4*np.sum(p, axis=1).reshape(-1, 1), 1 / \
+        4*np.sum(q, axis=1).reshape(-1, 1)
+    P_prime = p - p_bar
+    Q_prime = q - q_bar
 
-    # # # H = P_prime @ Q_prime.T
+    H = P_prime @ Q_prime.T
 
-    # # # # UU is returned correctly but has to be used transposed
-    # # # # VV is returned transposed but has to be used normally
-    # # # UU, SS, VV = np.linalg.svd(H)
+    # UU is returned correctly but has to be used transposed
+    # VV is returned transposed but has to be used normally
+    UU, SS, VV = np.linalg.svd(H)
 
-    # # # R = VV.T @ UU.T
+    R = VV.T @ UU.T
 
-    # # # t = q_bar - R @ p_bar
+    t = q_bar - R @ p_bar
 
-    # # # X_hat = R @ S + t
+    X_hat = R @ S + t
 
-    # # # return X_hat[:, :-3]
+    return X_hat[:, :-3]
 
     # Numerical minimization with surrogate model
-    P = anchor_pos
+    # # # P = anchor_pos
+    # # # P_prime = np.hstack([S[:,0].reshape(-1,1), S[:,-3:]])
+    # # # def f(x):
+    # # #     R, t = to_R_t(x)
+
+    # # #     out = 0
+    # # #     for i in range(P.shape[1]):
+    # # #         out += np.sum( ( R @ P_prime[:,i] + t - P[:,i])**2 )
+    # # #         # (x-x0) W (x-xo)^T
+
+    # # #     return out
+
+    # # # x0 = np.hstack([np.ones([1,9]), np.ones([1,3])])
+
+    # # # v = minimize(f, x0, method='BFGS' )
+
+    # # # Rp, tp = to_R_t(v.x)
+
+    # # # X_hat = Rp @ S + tp
+
+    # # # return X_hat[:,:-3]
+
+
+# def to_vector(R, t):
+#     return np.hstack([R.flatten(), t.flatten()])
+
+
+def to_R_t(vec):
+    vec = vec.reshape(12,)
+    return vec[:3*3].reshape(3,3), vec[3*3:].reshape(3,-1)
+
+
+
+def MDS_2(distance_matrix, anchor_pos, true_pos=None):
+    """
+    Compute the actual coordinates of the points given the complete distance matrix.
+    The matrix must contain n+1 known coordinates, i.e. n+1 anchors
+    """
+
+    # Compute the relative map of the points
+    S = EVD(distance_matrix, 3)
+
     P_prime = np.hstack([S[:,0].reshape(-1,1), S[:,-3:]])
-    def f(x):
-        R, t = to_R_t(x)
+    def f(x, P_bar):
+        R, t, P = to_R_t_2(x)
 
         out = 0
         for i in range(P.shape[1]):
             out += np.sum( ( R @ P_prime[:,i] + t - P[:,i])**2 )
-            # (x-x0) W (x-xo)^T
+            out += np.sum( ( P[:,i] - P_bar[:,i])**2 )            
 
-        return out
+        return out**2
 
-    x0 = np.hstack([np.ones([1,9]), np.ones([1,3])])
+    x0 = np.hstack([
+        np.eye(3).reshape(1,-1), 
+        np.zeros([1,3]),
+        anchor_pos.reshape(1,-1)
+    ])
 
-    v = minimize(f, x0, method='L-BFGS-B' )
+    v = minimize(f, x0, method='BFGS', args=(anchor_pos))
 
-    Rp, tp = to_R_t(v.x)
+    Rp, tp, Pp = to_R_t_2(v.x)
 
     X_hat = Rp @ S + tp
 
@@ -251,6 +297,6 @@ def MDS(distance_matrix, anchor_pos, true_pos=None):
 #     return np.hstack([R.flatten(), t.flatten()])
 
 
-def to_R_t(vec):
-    vec = vec.reshape(12,)
-    return vec[:3*3].reshape(3,3), vec[3*3:].reshape(3,-1)
+def to_R_t_2(vec):
+    vec = vec.reshape(24,)
+    return vec[:9].reshape(3,3), vec[9:12].reshape(3,-1), vec[12:].reshape(3,-1)

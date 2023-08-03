@@ -22,7 +22,7 @@ def M_ROT_TRASL_GZ_DRONE(i): return np.array(
 # M_ROT_TRASL_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
 
 
-TIMESTEP = 0.05 # to put in the config file # 10 ms are enough
+TIMESTEP = 0.02 # to put in the config file # 10 ms are enough
 
 
 class Test(Node):
@@ -44,9 +44,7 @@ class Test(Node):
         states variable stores information as following: [x, y, z, vel_x, vel_y, vel_z]
         """
         now_timestamp = self.get_timestamp()
-        timestep = now_timestamp - self.timestamp
-        self.states[:3] += self.states[3:] * timestep
-        
+        self.states[:3] += self.states[3:] * (now_timestamp - self.timestamp)
         self.timestamp = now_timestamp
 
     def write(self):
@@ -88,8 +86,9 @@ class Test(Node):
             'n_drones').get_parameter_value().integer_value
 
         # Class attributes, initialized for allocating memory
-        # states = [x, y, z, vel_x, vel_y, vel_z]^T
+        # states = [[x, y, z, vel_x, vel_y, vel_z]^T, ...]
         self.states = np.zeros((6, self.n_drones))
+        self.states[:3, 0] = np.array([-2,0,0])
         self.states[0] = np.array([range(self.n_drones)])
         self.writers = np.tile(None, (self.n_drones, ))
 

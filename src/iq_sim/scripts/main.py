@@ -19,13 +19,25 @@ def DISTANCE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/distances"
 
 
 TIMESTEP = 0.05
-ANCHOR_MOV_TIME = 1  # 1 s
+CHECK_UPDATE_TIME = 1.0
+ANCHOR_MOV_TIME = 1.0  # 1 s
 
 SWARM_COEF = np.array([0.0, 1.0, 0.0])
-ANCHOR_COEF = np.vstack([-np.eye(3),np.eye(3)])
+ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
+# ANCHOR_COEF = np.array([
+#     [0., 0., 0.],
+#     [0., 0., 0.],
+#     [1., 0., 0.],
+#     [-1., 0., 0.],
+#     [0., 1., 0.],
+#     [0., -1., 0.],
+#     [0., 0., 1.],
+#     [0., 0., -1.],
+# ])
+
 
 SWARM_VEL = 0.0  # [m/s]
-ANCHOR_VEL = 0.5
+ANCHOR_VEL = 1.0
 
 
 def M_ROT_TRASL_DRONE_GZ(i): return np.array(
@@ -43,12 +55,16 @@ class Main(Node):
         pos = received_msg.pose.position
         self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(
             index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
-    
+        # self.get_logger().info(f"drone{index}: {str(self.coords[:, index])}")
+
     def distance_reader_callback(self, received_msg, index):
         """
         Update the Distance Matrix (DM) buffer by replacing the i-th columnn.
         """
         self.DM_buffer[:, index] = np.array(received_msg.data)
+
+        if self.updating:
+            self.update_booleans[index] = True
 
     def initialize_swarm(self):
         """
@@ -66,38 +82,63 @@ class Main(Node):
 
         time.sleep(40.0)  # time to go up
 
-    def update(self, new_timestamp):
+    def update(self):
         """
         Update the following class parameters:
             - anchor position
             - distance matrix
             - measurement index
             - phase index
-            - offset
             - movement time
             - timestamp
         """
+        # New measure
         # practically
-        self.PMs[:, self.meas_index] = self.PMs[:, self.meas_index -
-                                                1] + ANCHOR_COEF[self.phase_index] * ANCHOR_VEL * self.mov_time
+        prev_pos = self.PMs[:, self.meas_index - 1] 
+        anchor_mov = ANCHOR_COEF[self.phase_index] * ANCHOR_VEL * self.anchor_timestep 
+        self.PMs[:, self.meas_index] = prev_pos + anchor_mov + self.offset
+
         self.DMs[self.meas_index] = np.copy(self.DM_buffer)
 
         # ideally
-        # # # self.PMs[:, self.meas_index] = self.coords[:, 0]
         # # # self.DMs[self.meas_index] = Algorithms.distance_matrix(self.coords)
+        # # # self.PMs[:, self.meas_index] = self.coords[:, 0]
 
+        # Run algorithms
+        X_mds, Cov_mds = self.MDS()
+        X_wlp, Cov_wlp = self.WLP()
+
+        # Update plots
+        # if self.phase_index == 5:
+        #     self.offset = self.PMs[:, self.meas_index]
+        # else:
+        #     self.offset += swarm_mov
+
+        self.plot.update(
+            true_coords=self.coords,
+            MDS_coords=X_mds + self.offset.reshape(-1, 1),
+            WLP_coords=X_wlp + self.offset.reshape(-1, 1),
+            MDS_cov=None,
+            WLP_cov=None
+        )
+
+        # Reset the booleans  
+        self.update_booleans[:] = False
+
+        # Update cycle management
         self.meas_index = (self.meas_index + 1) % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
+        self.timestamp = self.get_timestamp()
 
-        # print("Time difference:")
-        # print(new_timestamp-self.timestamp)
-        noise_time = Algorithms.noise(0, self.noise_time_std, shape=1)
-        self.mov_time = ANCHOR_MOV_TIME + noise_time
-        self.offset = np.copy(self.coords[:, 0])
-        self.timestamp = new_timestamp
-
-        if (not self.algorithms and self.phase_index > 3):
-            self.algorithms = True
+    def check_update(self):
+        """
+        Check whether the distances vectors for all the drones have been received. In case, update the estimation and move the anchor.
+        """
+        if np.all(self.update_booleans):
+            # avoid calling the function other times
+            self.check_update_timer.cancel()
+            self.update()
+            self.updating = False
 
     def MDS(self):
         """
@@ -129,7 +170,7 @@ class Main(Node):
 
         return Algorithms.WLP(DM, self.PMs), None
 
-    def move_swarm(self):
+    def move_swarm(self, anchor):
         """
         Move the drone swarm by sending velcity values.
         The method does not affect the anchor motion.
@@ -141,6 +182,10 @@ class Main(Node):
         for id in range(2, self.n_drones+1):
             self.navigation.send_setpoint_velocity(
                 id, vel_x, vel_y, vel_z, 0.0)
+
+        if anchor:
+            self.navigation.send_setpoint_velocity(
+                1, vel_x, vel_y, vel_z, 0.0)
 
     def move_anchor(self):
         """
@@ -159,34 +204,39 @@ class Main(Node):
         """
         Node main loop.
         """
-        # guide the swarm
+        # update positions and perform measurments
+        if self.updating:
+            # move all the drones simultaneously
+            self.move_swarm(anchor=True)
+        else:
+            now_timestamp = self.get_timestamp()
+            if ((now_timestamp - self.timestamp) >= self.mov_time):
+                # block the possibility to perform another update and tell the cb to flag the booleans
+                self.updating = True
 
-        now_timestamp = self.get_timestamp()
-        if ((now_timestamp - self.timestamp) >= self.mov_time):
-            # Update distance matrices, anchors positions and indicicies
-            self.update(new_timestamp=now_timestamp)
+                # make the swarm to keep going on
+                self.move_swarm(anchor=True)
 
-            # Run algorithms
-            if (self.algorithms):
-                X_mds, Cov_mds = self.MDS()
-                X_wlp, Cov_wlp = self.WLP()
+                # update the info to know how much the anchor has moved
+                self.anchor_timestep = now_timestamp-self.timestamp
 
-                self.coords[:, 0].reshape(-1, 1)
-                self.plot.update(
-                    true_coords=np.copy(self.coords),
-                    MDS_coords=X_mds,  # + self.offset.reshape(-1, 1),
-                    WLP_coords=X_wlp,  # + self.offset.reshape(-1, 1),
-                    MDS_cov=None,
-                    WLP_cov=None
+                # leave the time to update the distances and perform the update
+                self.check_update_timer = self.create_timer(
+                    CHECK_UPDATE_TIME, self.check_update
                 )
+            else:
+                # move the swarm normally and the anchor to the new position
+                self.move_swarm(anchor=False)
+                self.move_anchor()
 
-            self.get_logger().info(f"New phase index: {self.phase_index}")
-            self.get_logger().info(f"  Anchor moved: {str(self.coords[:, 0])}")
+        # in any case the swarm has been moved
+        self.offset += SWARM_COEF * SWARM_VEL * TIMESTEP
 
-        self.move_swarm()
-        self.move_anchor()
-        # print("sec")
-        # print(a+self.get_clock().now().to_msg().sec+self.get_clock().now().to_msg().nanosec/1e9)
+
+    def start(self):
+        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+        self.timestamp = self.get_timestamp()
+        self.start_timer.cancel()
 
     def __init__(self):
 
@@ -222,12 +272,16 @@ class Main(Node):
             'noise_time_std').get_parameter_value().double_value
 
         # Attributes initialization
+        # management
         self.phase_index, self.meas_index = 0, 0
         self.anchor_id = 1
         self.n_meas = 4
         self.mov_time = ANCHOR_MOV_TIME
         self.algorithms = False
+        self.updating = False
+        self.update_booleans = np.zeros((self.n_drones,), dtype=bool)
 
+        # measurements
         self.coords = np.zeros((3, self.n_drones))
         self.offset = np.zeros((3,))
         self.PMs = np.zeros((3, self.n_meas))
@@ -258,28 +312,29 @@ class Main(Node):
 
         # Initialize Navigation object
         self.navigation = Navigation(
-            node=self, n_drones=self.n_drones, timeout=10)
+            node=self, n_drones=self.n_drones, timeout=10
+        )
         if (self.environment == "gazebo"):
             self.initialize_swarm()
 
-        # Initialize Plot object
-        self.plot = Plot(mode='2D', display_MDS=True,
-                         display_WLP=True, reduction_method='xy')
+        # Plotting
+        self.plot = Plot(
+            mode='2D',
+            display_MDS=True,
+            display_WLP=True,
+            reduction_method='xy'
+        )
+        self.plot.start()
 
-        # Timestamps
+        # Time management
         def get_timestamp():
             now = self.get_clock().now().to_msg()
             return now.sec+now.nanosec/1e9
         self.get_timestamp = get_timestamp
+        self.anchor_timestep = 0.0
 
-        self.timestamp = self.get_timestamp()
-
-        self.step = 0
-        # Start the plot thread
-        self.plot.start()
-
-        # Loop over time
-        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+        # Just wait some seconds (10) and start..
+        self.start_timer = self.create_timer(10, self.start)
 
 
 def main(args=None):
