@@ -13,15 +13,7 @@ from rclpy.qos import qos_profile_system_default
 
 # Import the API.
 from Plot.PrintColours import *
-
-
-def POSITION_TOPIC_TEMPLATE(id): return f'/drone{id}/mavros/setpoint_position/local'
-def VELOCITY_TOPIC_TEMPLATE(id): return f'/drone{id}/mavros/setpoint_velocity/cmd_vel'
-def SETMODE_TOPIC_TEMPLATE(id):  return f'/drone{id}/mavros/set_mode'
-def ARMING_TOPIC_TEMPLATE(id):   return f'/drone{id}/mavros/cmd/arming'
-def TAKEOFF_TOPIC_TEMPLATE(id):  return f'/drone{id}/mavros/cmd/takeoff'
-def LAND_TOPIC_TEMPLATE(id):     return f'/drone{id}/mavros/cmd/land'
-
+from Control.topics import *
 
 class Navigation():
 

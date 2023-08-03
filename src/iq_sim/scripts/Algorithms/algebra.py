@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import numpy as np
 # from scipy.optimize import least_squares
 from scipy.optimize import minimize
@@ -300,3 +301,13 @@ def MDS_2(distance_matrix, anchor_pos, true_pos=None):
 def to_R_t_2(vec):
     vec = vec.reshape(24,)
     return vec[:9].reshape(3,3), vec[9:12].reshape(3,-1), vec[12:].reshape(3,-1)
+
+# def M_ROT_TRASL_DRONE_GZ(i): 
+#     return np.array([[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+def M_ROT_TRASL_DRONE_GZ(i): return np.eye(4)
+
+
+# M_ROT_TRASL_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
+# def M_ROT_TRASL_GZ_DRONE(i): return np.array(
+#     [[0, -1, 0, 0], [1, 0, 0, -i], [0, 0, 1, 0], [0, 0, 0, 1]])
+def M_ROT_TRASL_GZ_DRONE(i): return np.eye(4)

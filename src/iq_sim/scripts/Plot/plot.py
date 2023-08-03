@@ -113,7 +113,6 @@ class Plot():
                 axis.set_xlim([-5,15]) # ([-2,2])
                 axis.set_ylim([-5,15]) # ([-2,2])
                 axis.set_zlim([-5,15]) # ([-2,2])
-
     
     
     def __draw_covariance(self, frame: str, confidence=0.95):
@@ -129,6 +128,9 @@ class Plot():
         # Get points and axis for the given frame
         axis, points, cov_matrix = self.__get_data(frame=frame)
 
+        # Covariance might not be initialized yet
+        if (cov_matrix is None): return
+        
         # Project to 2D
         points = self.__data_to_2D(points)
 
@@ -199,7 +201,6 @@ class Plot():
 
         if (reduction_method not in ['PCA', 'xy']): raise ValueError(f"reduction_method must be either 'PCA' or 'xy', not {reduction_method}.")
         
-        
         # Set the class attributes
         self.__mode = mode
         self.__display_MDS = display_MDS
@@ -211,7 +212,6 @@ class Plot():
 
         self.__true_coords, self.__MDS_coords, self.__WLP_coords, self.__MDS_cov, self.__WLP_cov  \
                                                                             = None, None, None, None, None
-
 
     def start(self):
         """

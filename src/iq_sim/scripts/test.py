@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
+
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from rclpy.qos import qos_profile_system_default
 from rclpy.node import Node
-import rclpy
-
-import numpy as np
-
 from Algorithms import *
 from Plot import class_name
+from Control.topics import *
+import rclpy
+import numpy as np
 
-
-def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
-
-
-def VEL_TOPIC_TEMPLATE(
-    id): return f"/drone{id}/mavros/setpoint_velocity/cmd_vel"
-
-
-def M_ROT_TRASL_GZ_DRONE(i): return np.array(
-    [[0, -1, 0, 0], [1, 0, 0, -i], [0, 0, 1, 0], [0, 0, 0, 1]])
-def M_ROT_TRASL_GZ_DRONE(i): return np.eye(4)
-
-# M_ROT_TRASL_GZ_DRONE = MatrixInverse(M_ROT_TRASL_Z_DRONE_GZ)
 
 
 TIMESTEP = 0.02 # to put in the config file # 10 ms are enough
@@ -40,6 +27,7 @@ class Test(Node):
         self.states[3:, index] = np.array([vel.x, vel.y, vel.z])
         self.get_logger().debug(f"New velocity drone{index+1}: {str(vel)}")
 
+
     def update(self):
         """
         Integrator of first order: s = v * t
@@ -48,6 +36,7 @@ class Test(Node):
         now_timestamp = self.get_timestamp()
         self.states[:3] += self.states[3:] * (now_timestamp - self.timestamp)
         self.timestamp = now_timestamp
+
 
     def write(self):
         """
@@ -65,6 +54,7 @@ class Test(Node):
 
             self.writers[i].publish(pose_msg)
 
+
     def cycle_callback(self):
         """
         Callback function that allows to run over time.
@@ -74,6 +64,7 @@ class Test(Node):
         """
         self.update()
         self.write()
+
 
     def __init__(self):
 

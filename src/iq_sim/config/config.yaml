@@ -3,3 +3,24 @@ config:
     altitude: 5.0
     noise_dist_std: 0.1
     
+
+
+## From main
+# TIMESTEP = 0.1
+# CHECK_UPDATE_TIME = 5
+# ANCHOR_MOV_TIME = 1.0  # 1 s
+
+# SWARM_COEF  = np.array([0.0, 1.0, 0.0])
+# ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
+
+
+
+# SWARM_VEL = 0.2  # [m/s]
+# ANCHOR_VEL = 1.0
+
+## From Hub.py
+# TIMESTEP = 0.02
+
+
+## From test.py
+# TIMESTEP = 0.02 # to put in the config file # 10 ms are enough

@@ -1,21 +1,14 @@
 #!/usr/bin/env python3
 
 import numpy as np
-
-import rclpy
+import rclpy, Algorithms
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
 from geometry_msgs.msg import PoseStamped
-
 from std_msgs.msg import Float32MultiArray
-import Algorithms
 from Plot import class_name
+from Control.topics import *
 
-
-def POSE_TOPIC_TEMPLATE(i):     return f"/drone{i}/mavros/local_position/pose"
-def DISTANCE_TOPIC_TEMPLATE(i): return f"/drone{i}/mavros/distances"
-def M_ROT_TRASL_DRONE_GZ(i): return np.array([[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-def M_ROT_TRASL_DRONE_GZ(i): return np.eye(4)
 
 TIMESTEP = 0.02
 
@@ -27,7 +20,7 @@ class Hub(Node):
         Save the information sent over the topic in the coords data structure.
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
+        self.coords[:, index] = (Algorithms.M_ROT_TRASL_DRONE_GZ(index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
 
 
     def write_distances(self):

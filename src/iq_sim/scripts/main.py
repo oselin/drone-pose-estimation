@@ -4,49 +4,23 @@ from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped
 from rclpy.qos import qos_profile_system_default
 from rclpy.node import Node
-import rclpy
-
-import numpy as np
-import time
-import threading
-
-
+from Control.topics import *
 from Control import Navigation
-import Algorithms
 from Plot import class_name, Plot
-
-
-def POSE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/local_position/pose"
-def DISTANCE_TOPIC_TEMPLATE(id): return f"/drone{id}/mavros/distances"
+import rclpy, time, Algorithms
+import numpy as np
 
 
 TIMESTEP = 0.1
 CHECK_UPDATE_TIME = 5
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
-SWARM_COEF = np.array([0.0, 1.0, 0.0])
+SWARM_COEF  = np.array([0.0, 1.0, 0.0])
 ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
-# ANCHOR_COEF = np.array([
-#     [0., 0., 0.],
-#     [0., 0., 0.],
-#     [1., 0., 0.],
-#     [-1., 0., 0.],
-#     [0., 1., 0.],
-#     [0., -1., 0.],
-#     [0., 0., 1.],
-#     [0., 0., -1.],
-# ])
-
 
 SWARM_VEL = 0.2  # [m/s]
 ANCHOR_VEL = 1.0
 
-
-def M_ROT_TRASL_DRONE_GZ(i): return np.array(
-    [[0, 1, 0, i], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-
-
-def M_ROT_TRASL_DRONE_GZ(i): return np.eye(4)
 
 class Main(Node):
 
@@ -57,9 +31,10 @@ class Main(Node):
         It is activated only if 'environment' is set to 'test'
         """
         pos = received_msg.pose.position
-        self.coords[:, index] = (M_ROT_TRASL_DRONE_GZ(
+        self.coords[:, index] = (Algorithms.M_ROT_TRASL_DRONE_GZ(
             index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
         # self.get_logger().info(f"drone{index}: {str(self.coords[:, index])}")
+
 
     def distance_reader_callback(self, received_msg, index):
         """
@@ -67,8 +42,8 @@ class Main(Node):
         """
         self.DM_buffer[:, index] = np.array(received_msg.data)
 
-        if self.updating:
-            self.update_booleans[index] = True
+        if self.updating: self.update_booleans[index] = True
+
 
     def initialize_swarm(self):
         """
@@ -85,7 +60,6 @@ class Main(Node):
             self.navigation.takeoff(id, self.altitude)
 
         time.sleep(40.0)  # time to go up
-
 
 
     def MDS(self):
@@ -107,17 +81,23 @@ class Main(Node):
 
         # Run the algorithm
         X_mds = Algorithms.MDS(DM, PMs_tmp)
+
+        # Store the estimated coordinates
         self.X_mds_storage[self.mds_index] = X_mds
-        self.mds_index += 1
-        self.X_mds_storage[self.mds_index] = X_mds
-        self.mds_index += 1
 
         # Compute the covaraince matrix 
-        Cov_mds = np.zeros((9, self.n_drones))
-        for i in range(self.n_drones):
-            Cov_mds[:, i] = np.cov(self.X_mds_storage[:self.mds_index, :, i].T).reshape(9,-1)
+        if (not self.mds_index):
+            Cov_mds = None
+        else:
+            Cov_mds = np.zeros((9, self.n_drones))
+            for i in range(self.n_drones):
+                Cov_mds[:, i] = np.cov(self.X_mds_storage[:self.mds_index+1, :, i], rowvar=False).flatten()
+
+        # Update the storage counter
+        self.mds_index += 1
 
         return X_mds, Cov_mds
+
 
     def WLP(self):
         """
@@ -138,13 +118,20 @@ class Main(Node):
 
         # Run the algorithm
         X_wlp = Algorithms.WLP(DM, PMs_tmp)
+        
+        # Store the estimated coordinates
         self.X_wlp_storage[self.wlp_index] = X_wlp
-        self.wlp_index += 1
 
         # Compute the covaraince matrix 
-        Cov_wlp = np.zeros((9, self.n_drones))
-        for i in range(self.n_drones):
-            Cov_wlp[:, i] = np.cov(self.X_wlp_storage[:self.wlp_index, :, i]).reshape(9,-1)
+        if (not self.wlp_index):
+            Cov_wlp = None
+        else:
+            Cov_wlp = np.zeros((9, self.n_drones))
+            for i in range(self.n_drones):
+                Cov_wlp[:, i] = np.cov(self.X_wlp_storage[:self.wlp_index+1, :, i], rowvar=False).flatten()
+        
+        # Update the storage counter
+        self.wlp_index += 1
 
         return X_wlp, Cov_wlp
 
@@ -159,44 +146,44 @@ class Main(Node):
             - movement time
             - timestamp
         """
-        # New measure
-        # practically
+        # The algorithms require at least 4 iterations. 
+        # Avoid executing the algorithms if less than 4 iter.
+        if (not self.algorithms and self.phase_index > 3): self.algorithms = True
+
+
+        # Update: x_(n) = x_(n-1) + Delta_x
         prev_pos = self.PMs[:, self.meas_index - 1]
-        anchor_mov = ANCHOR_COEF[self.phase_index] * \
-            ANCHOR_VEL * self.anchor_timestep
+        anchor_mov = ANCHOR_COEF[self.phase_index] * ANCHOR_VEL * self.anchor_timestep
+
         self.PMs[:, self.meas_index] = prev_pos + anchor_mov
 
+        # Store the just received distance matrix for the i-th (meas_index) iteration
         self.DMs[self.meas_index] = np.copy(self.DM_buffer)
 
-        # ideally
-        # # # self.DMs[self.meas_index] = Algorithms.distance_matrix(self.coords)
-        # # # self.PMs[:, self.meas_index] = self.coords[:, 0]
+        
+        if (self.algorithms):
+            
+            # Run algorithms
+            X_mds, Cov_mds = self.MDS()
+            X_wlp, Cov_wlp = self.WLP()
 
-        # Run algorithms
-        X_mds, Cov_mds = self.MDS()
-        X_wlp, Cov_wlp = self.WLP()
-
-        # Update plots
-        # if self.phase_index == 5:
-        #     self.offset = self.PMs[:, self.meas_index]
-        # else:
-        #     self.offset += swarm_mov
-
-        self.plot.update(
-            true_coords=self.coords,
-            MDS_coords=X_mds + self.offset.reshape(-1, 1),
-            WLP_coords=X_wlp + self.offset.reshape(-1, 1),
-            MDS_cov=Cov_mds,
-            WLP_cov=Cov_wlp
-        )
+            # Update the plot
+            self.plot.update(
+                true_coords=self.coords,
+                MDS_coords=X_mds + self.offset.reshape(-1, 1),
+                WLP_coords=X_wlp + self.offset.reshape(-1, 1),
+                MDS_cov=Cov_mds,
+                WLP_cov=Cov_wlp
+            )
 
         # Reset the booleans
         self.update_booleans[:] = False
 
         # Update cycle management
-        self.meas_index = (self.meas_index + 1) % self.n_meas
+        self.meas_index  = (self.meas_index + 1)  % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         self.timestamp = self.get_timestamp()
+
 
     def check_update(self):
         """
@@ -207,18 +194,19 @@ class Main(Node):
             self.update()
             self.updating = False
 
+
     def move_swarm(self, anchor):
         """
         Move the drone swarm by sending velcity values.
-        The method does not affect the anchor motion.
+        The method affects the anchor motion if anchor set to True.
         """
         # Compute the velocity components
         vel_x, vel_y, vel_z = SWARM_COEF*SWARM_VEL
 
         # Send velocity value to all the drones and to the anchor, in case it's flagged
         for id in range(2-int(anchor), self.n_drones+1):
-            self.navigation.send_setpoint_velocity(
-                id, vel_x, vel_y, vel_z, 0.0)
+            self.navigation.send_setpoint_velocity(id, vel_x, vel_y, vel_z, 0.0)
+
 
     def move_anchor(self):
         """
@@ -230,8 +218,8 @@ class Main(Node):
             ANCHOR_COEF[self.phase_index] * ANCHOR_VEL
 
         # Send velocity value
-        self.navigation.send_setpoint_velocity(
-            self.anchor_id, vel_x, vel_y, vel_z, 0.0)
+        self.navigation.send_setpoint_velocity(self.anchor_id, vel_x, vel_y, vel_z, 0.0)
+
 
     def cycle_callback(self):
         """
@@ -264,9 +252,9 @@ class Main(Node):
         # in any case the swarm has been moved
         self.offset += SWARM_COEF * SWARM_VEL * TIMESTEP
 
+
     def start(self):
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
-        self.a = self.get_timestamp()
         self.timestamp = self.get_timestamp()
         self.start_timer.cancel()
 
@@ -303,7 +291,7 @@ class Main(Node):
         self.noise_time_std = self.get_parameter(
             'noise_time_std').get_parameter_value().double_value
 
-        # Attributes initialization
+        ## Attributes initialization
         # management
         self.phase_index, self.meas_index = 0, 0
         self.anchor_id = 1
@@ -312,17 +300,17 @@ class Main(Node):
         self.algorithms = False
         self.updating = False
         self.update_booleans = np.zeros((self.n_drones,), dtype=bool)
+        self.mds_index = 0
+        self.wlp_index = 0
 
         # measurements
         self.coords = np.zeros((3, self.n_drones))
         self.offset = np.zeros((3,))
-        self.PMs = np.zeros((3, self.n_meas))
-        self.DMs = np.zeros((self.n_meas, self.n_drones, self.n_drones))
-        self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
+        self.PMs    = np.zeros((3, self.n_meas))
+        self.DMs    = np.zeros((self.n_meas, self.n_drones, self.n_drones))
+        self.DM_buffer     = np.zeros((self.n_drones, self.n_drones))
         self.X_mds_storage = np.zeros((1000, 3, self.n_drones))
         self.X_wlp_storage = np.zeros((1000, 3, self.n_drones))
-        self.mds_index = 0
-        self.wlp_index = 0
 
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
@@ -348,8 +336,7 @@ class Main(Node):
             )
 
         # Initialize Navigation object
-        self.navigation = Navigation(
-            node=self, n_drones=self.n_drones, timeout=10
+        self.navigation = Navigation(node=self, n_drones=self.n_drones, timeout=10
         )
         if (self.environment == "gazebo"):
             self.initialize_swarm()
@@ -359,7 +346,8 @@ class Main(Node):
             mode='2D',
             display_MDS=True,
             display_WLP=True,
-            reduction_method='xy'
+            reduction_method='xy',
+            display_covariance=True,
         )
         self.plot.start()
 
@@ -367,6 +355,7 @@ class Main(Node):
         def get_timestamp():
             now = self.get_clock().now().to_msg()
             return now.sec+now.nanosec/1e9
+            
         self.get_timestamp = get_timestamp
         self.anchor_timestep = 0.0
 
