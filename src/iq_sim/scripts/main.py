@@ -86,6 +86,69 @@ class Main(Node):
 
         time.sleep(40.0)  # time to go up
 
+
+
+    def MDS(self):
+        """
+        Run MDS algorithm defined in the Algorithms class, by assembling the
+        disance matrices in one unique [n+3, n+3] matrix.
+        Return:
+            - Coordinates of the drones swarm estimated via the algorithm.
+        """
+        # Shift based on the meas index
+        DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
+        PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
+
+        # Assemble the full distance matrix
+        DM = Algorithms.combine_matrices(
+            DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
+            PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
+        )
+
+        # Run the algorithm
+        X_mds = Algorithms.MDS(DM, PMs_tmp)
+        self.X_mds_storage[self.mds_index] = X_mds
+        self.mds_index += 1
+        self.X_mds_storage[self.mds_index] = X_mds
+        self.mds_index += 1
+
+        # Compute the covaraince matrix 
+        Cov_mds = np.zeros((9, self.n_drones))
+        for i in range(self.n_drones):
+            Cov_mds[:, i] = np.cov(self.X_mds_storage[:self.mds_index, :, i].T).reshape(9,-1)
+
+        return X_mds, Cov_mds
+
+    def WLP(self):
+        """
+        Run WLP algorithm defined in the Algorithms class, by assembling the
+        disance matrices in one unique [n+3, n+3] matrix.
+        Return:
+            - Coordinates of the drones swarm estimated via the algorithm.
+        """   
+        # Shift based on the meas index
+        DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
+        PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
+
+        # Assemble the full distance matrix
+        DM = Algorithms.combine_matrices(
+            DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
+            PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
+        )
+
+        # Run the algorithm
+        X_wlp = Algorithms.WLP(DM, PMs_tmp)
+        self.X_wlp_storage[self.wlp_index] = X_wlp
+        self.wlp_index += 1
+
+        # Compute the covaraince matrix 
+        Cov_wlp = np.zeros((9, self.n_drones))
+        for i in range(self.n_drones):
+            Cov_wlp[:, i] = np.cov(self.X_wlp_storage[:self.wlp_index, :, i]).reshape(9,-1)
+
+        return X_wlp, Cov_wlp
+
+
     def update(self):
         """
         Update the following class parameters:
@@ -123,8 +186,8 @@ class Main(Node):
             true_coords=self.coords,
             MDS_coords=X_mds + self.offset.reshape(-1, 1),
             WLP_coords=X_wlp + self.offset.reshape(-1, 1),
-            MDS_cov=None,
-            WLP_cov=None
+            MDS_cov=Cov_mds,
+            WLP_cov=Cov_wlp
         )
 
         # Reset the booleans
@@ -143,40 +206,6 @@ class Main(Node):
             self.check_update_timer.cancel()
             self.update()
             self.updating = False
-
-    def MDS(self):
-        """
-        Run MDS algorithm defined in the Algorithms class, by assembling the
-        disance matrices in one unique [n+3, n+3] matrix.
-        Return:
-            - Coordinates of the drones swarm estimated via the algorithm.
-        """
-        # Shift based on the meas index
-        DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
-        PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
-
-        # Assemble the full distance matrix
-        DM = Algorithms.combine_matrices(
-            DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
-            PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
-        )
-
-        return Algorithms.MDS(DM, PMs_tmp), None
-
-    def WLP(self):
-        """
-        Run WLP algorithm defined in the Algorithms class, by assembling the
-        disance matrices in one unique [n+3, n+3] matrix.
-        Return:
-            - Coordinates of the drones swarm estimated via the algorithm.
-        """
-        # Assemble the full distance matrix
-        DM = Algorithms.combine_matrices(
-            self.DMs[0], self.DMs[1], self.DMs[2], self.DMs[3],
-            self.PMs[:, 0], self.PMs[:, 1], self.PMs[:, 2], self.PMs[:, 3]
-        )
-
-        return Algorithms.WLP(DM, self.PMs), None
 
     def move_swarm(self, anchor):
         """
@@ -238,7 +267,6 @@ class Main(Node):
     def start(self):
         self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
         self.a = self.get_timestamp()
-        self.counter = 1
         self.timestamp = self.get_timestamp()
         self.start_timer.cancel()
 
@@ -283,7 +311,6 @@ class Main(Node):
         self.mov_time = ANCHOR_MOV_TIME
         self.algorithms = False
         self.updating = False
-
         self.update_booleans = np.zeros((self.n_drones,), dtype=bool)
 
         # measurements
@@ -292,6 +319,11 @@ class Main(Node):
         self.PMs = np.zeros((3, self.n_meas))
         self.DMs = np.zeros((self.n_meas, self.n_drones, self.n_drones))
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
+        self.X_mds_storage = np.zeros((1000, 3, self.n_drones))
+        self.X_wlp_storage = np.zeros((1000, 3, self.n_drones))
+        self.mds_index = 0
+        self.wlp_index = 0
+
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
