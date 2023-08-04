@@ -3,11 +3,12 @@
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from rclpy.qos import qos_profile_system_default
 from rclpy.node import Node
-from Algorithms import *
 from Plot import class_name
 from Control.topics import *
 import rclpy
 import numpy as np
+
+import Algorithms
 
 
 
@@ -23,8 +24,15 @@ class Test(Node):
             - received_msg: message coming from topic
             - index: drone index generated at subscription time
         """
-        vel = received_msg.twist.linear
-        self.states[3:, index] = np.array([vel.x, vel.y, vel.z])
+        # simplify access
+        rel_vel = received_msg.twist.linear
+        
+        # apply transformation
+        M_DRONE_GZ = Algorithms.M_ROT_TRASL_DRONE_GZ(index)
+        vel = (M_DRONE_GZ @ np.array([rel_vel.x, rel_vel.y, rel_vel.z, 0]))[:3]
+
+        # record
+        self.states[3:, index] = np.array([vel[0], vel[1], vel[2]])
         self.get_logger().debug(f"New velocity drone{index+1}: {str(vel)}")
 
 
@@ -44,7 +52,7 @@ class Test(Node):
         The transformations simulate the APM conventions (rotation of pi about x)
         """
         for i in range(self.n_drones):
-            pos = M_ROT_TRASL_GZ_DRONE(
+            pos = Algorithms.M_ROT_TRASL_GZ_DRONE(
                 i) @ np.hstack((self.states[:3, i], 1))
 
             pose_msg = PoseStamped()

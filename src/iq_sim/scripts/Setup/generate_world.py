@@ -8,7 +8,7 @@ script_directory = os.path.dirname(os.path.abspath(__file__))
 def new_drone(index):
     # Create the 'model' element
     model = ET.Element("model")
-    model.set("name", f"drone{index}")
+    model.set("name", f"drone{index+1}")
     model.text = "\n\t\t"
 
     # Create the 'pose' subelement
@@ -23,7 +23,7 @@ def new_drone(index):
 
     # Create the 'uri' element inside 'include' and set its value
     uri = ET.SubElement(include, "uri")
-    uri.text = f"model://drone{index}"
+    uri.text = f"model://drone{index+1}"
     uri.tail = "\n\t\t"
     model.tail = "\n"
 
@@ -36,8 +36,8 @@ def generate_world(drones_number):
     root = tree.getroot()
 
     # Add the right number of drones
-    for i in range(1, drones_number+1):
-        print(f"Adding drone to world {i}/{drones_number}")
+    for i in range(drones_number):
+        print(f"Adding drone to world {i+1}/{drones_number}")
         root.find('.//world').append(new_drone(i))
 
     # Save the modified XML 
