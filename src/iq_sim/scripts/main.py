@@ -14,10 +14,10 @@ import numpy as np
 
 
 TIMESTEP = 0.1
-CHECK_UPDATE_TIME = 5
+CHECK_UPDATE_TIME = 5.0
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
-SWARM_COEF = np.array([0.0, 1.0, 0.0])
+SWARM_COEF = np.array([1.0, 1.0, 0.0])
 ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 
 SWARM_VEL = 0.2  # [m/s]
@@ -193,6 +193,8 @@ class Main(Node):
         self.update_booleans[:] = False
 
         # Update cycle management
+        self.mov_time = ANCHOR_MOV_TIME + \
+            Algorithms.noise(0, self.noise_time_std, shape=1)
         self.meas_index = (self.meas_index + 1) % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         self.anchor_timestamp = self.get_timestamp()
@@ -215,8 +217,9 @@ class Main(Node):
         vel_x, vel_y, vel_z = SWARM_COEF*SWARM_VEL
 
         # Send velocity value to all the drones and to the anchor, in case it's flagged
-        for id in range(2-int(anchor), self.n_drones+1):
-            self.send_velocity(id, vel_x, vel_y, vel_z)
+        for id in range(1, self.n_drones+1):
+            if id != self.anchor_id or anchor:
+                self.send_velocity(id, vel_x, vel_y, vel_z)
 
     def move_anchor(self):
         """
@@ -298,19 +301,15 @@ class Main(Node):
             'altitude').get_parameter_value().double_value
 
         # rclpy.Parameter.Type.DOUBLE
-        self.declare_parameter('noise_dist_std', 0.0)
-        self.noise_dist_std = self.get_parameter(
-            'noise_dist_std').get_parameter_value().double_value
-
-        # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('noise_time_std', 0.0)
         self.noise_time_std = self.get_parameter(
             'noise_time_std').get_parameter_value().double_value
+        # TODO implement utilization
 
         # Attributes initialization
         # management
         self.phase_index, self.meas_index = 0, 0
-        self.anchor_id = 1
+        self.anchor_id = 1  # only works if anchor_id = 1 atm
         self.n_meas = 4
         self.mov_time = ANCHOR_MOV_TIME
         self.algorithms = False
