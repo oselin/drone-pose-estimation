@@ -182,7 +182,7 @@ class Main(Node):
         # Update cycle management
         self.meas_index  = (self.meas_index + 1)  % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
-        self.timestamp = self.get_timestamp()
+        self.anchor_timestamp = self.get_timestamp()
 
 
     def check_update(self):
@@ -225,12 +225,12 @@ class Main(Node):
         """
         Node main loop. Update positions and perform measurments.
         """    
+        now_timestamp = self.get_timestamp()
         if self.updating:
             # move all the drones simultaneously
             self.move_swarm(anchor=True)
         else:
-            now_timestamp = self.get_timestamp()
-            if ((now_timestamp - self.timestamp) >= self.mov_time):
+            if ((now_timestamp - self.anchor_timestamp) >= self.mov_time):
                 # block the possibility to perform another update and tell the cb to flag the booleans
                 self.updating = True
 
@@ -238,7 +238,7 @@ class Main(Node):
                 self.move_swarm(anchor=True)
 
                 # update the info to know how much the anchor has moved
-                self.anchor_timestep = now_timestamp-self.timestamp
+                self.anchor_timestep = now_timestamp-self.anchor_timestamp
 
                 # leave the time to update the distances and perform the update
                 self.check_update_timer = self.create_timer(
@@ -249,13 +249,21 @@ class Main(Node):
                 self.move_swarm(anchor=False)
                 self.move_anchor()
 
-        # in any case the swarm has been moved
-        self.offset += SWARM_COEF * SWARM_VEL * TIMESTEP
+        # take into account the real time elapsed from the previous movement
+        timestep = now_timestamp - self.timestamp
+        self.timestamp = now_timestamp
+
+        # update swarm position by integration
+        self.offset += SWARM_COEF * SWARM_VEL * timestep
 
 
     def start(self):
-        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
         self.timestamp = self.get_timestamp()
+        self.anchor_timestamp = self.timestamp
+
+        self.move_swarm(anchor=True)
+
+        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
         self.start_timer.cancel()
 
     def __init__(self):
@@ -357,9 +365,12 @@ class Main(Node):
             return now.sec+now.nanosec/1e9
             
         self.get_timestamp = get_timestamp
-        self.anchor_timestep = 0.0
+        self.timestamp = 0.0        # for each cycle 
+        self.anchor_timestep = 0.0  
+        self.anchor_timestamp = 0.0 # for the anchor movement 
 
         # Just wait some seconds (10) and start..
+        # Needed to allow a better estimation of the anchor movement
         self.start_timer = self.create_timer(10, self.start)
 
 
