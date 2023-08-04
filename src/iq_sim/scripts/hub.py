@@ -10,7 +10,7 @@ from Plot import class_name
 from Control.topics import *
 
 
-TIMESTEP = 0.02
+TIMESTEP = 0.1
 
 class Hub(Node):
 
@@ -33,7 +33,8 @@ class Hub(Node):
             self.distance_writers[i].publish(msg)
 
     def update_distances(self):
-        self.distances = Algorithms.distance_matrix(self.coords) + Algorithms.noise(0, 0.0, shape=self.distances.shape)
+        noise =  Algorithms.noise(0, self.noise_dist_std, shape=self.distances.shape)
+        self.distances = Algorithms.distance_matrix(self.coords) + noise ** 2
 
     def cycle_callback(self):
         """
@@ -56,8 +57,13 @@ class Hub(Node):
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
         self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
 
-        # self.declare_parameter('noise',    rclpy.Parameter.Type.STRING)
-        # self.noise = self.get_parameter('noise').get_parameter_value().string_value
+
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('noise_dist_std', 0.0)
+        self.noise_dist_std = self.get_parameter(
+            'noise_dist_std').get_parameter_value().double_value
+
+        print(self.noise_dist_std)
 
         # Pre-allocation of memory
         self.distances = np.zeros((self.n_drones, self.n_drones))         

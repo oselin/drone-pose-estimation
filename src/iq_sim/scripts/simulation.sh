@@ -70,12 +70,12 @@ sleep $((60 * $1))
 # Launch ROS2 node to calculate the distances from the drones' coordinates
 echo
 echo 'Launching the hub...'
-gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1" # -p noise:='none' "
+gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args -p n_drones:=$1 " # -p noise:='none' "
 echo 'hub launched!'
 sleep $((60 * $1))
 
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
 echo
 echo 'Launching main.py...'
-gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p environment:='gazebo' -p n_drones:=$1 -p altitude:=5.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
+gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args -p n_drones:=$1 -p altitude:=0.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
 echo 'main.py launched!'

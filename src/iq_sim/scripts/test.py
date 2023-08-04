@@ -11,8 +11,7 @@ import numpy as np
 import Algorithms
 
 
-
-TIMESTEP = 0.02 # to put in the config file # 10 ms are enough
+TIMESTEP = 0.1  # to put in the config file # 10 ms are enough
 
 
 class Test(Node):
@@ -26,7 +25,7 @@ class Test(Node):
         """
         # simplify access
         rel_vel = received_msg.twist.linear
-        
+
         # apply transformation
         M_DRONE_GZ = Algorithms.M_ROT_TRASL_DRONE_GZ(index)
         vel = (M_DRONE_GZ @ np.array([rel_vel.x, rel_vel.y, rel_vel.z, 0]))[:3]
@@ -34,7 +33,6 @@ class Test(Node):
         # record
         self.states[3:, index] = np.array([vel[0], vel[1], vel[2]])
         self.get_logger().debug(f"New velocity drone{index+1}: {str(vel)}")
-
 
     def update(self):
         """
@@ -44,7 +42,6 @@ class Test(Node):
         now_timestamp = self.get_timestamp()
         self.states[:3] += self.states[3:] * (now_timestamp - self.timestamp)
         self.timestamp = now_timestamp
-
 
     def write(self):
         """
@@ -62,7 +59,6 @@ class Test(Node):
 
             self.writers[i].publish(pose_msg)
 
-
     def cycle_callback(self):
         """
         Callback function that allows to run over time.
@@ -72,7 +68,6 @@ class Test(Node):
         """
         self.update()
         self.write()
-
 
     def __init__(self):
 
@@ -89,7 +84,6 @@ class Test(Node):
         # Class attributes, initialized for allocating memory
         # states = [[x, y, z, vel_x, vel_y, vel_z]^T, ...]
         self.states = np.zeros((6, self.n_drones))
-        self.states[:3, 0] = np.array([-2,0,0])
         self.states[0] = np.array([range(self.n_drones)])
         self.writers = np.tile(None, (self.n_drones, ))
 
@@ -97,7 +91,7 @@ class Test(Node):
             now = self.get_clock().now().to_msg()
             return now.sec+now.nanosec/1e9
         self.get_timestamp = get_timestamp
-        
+
         self.timestamp = self.get_timestamp()
 
         # Subscribe to VEL_TOPIC_TEMPLATE topic for each drone
