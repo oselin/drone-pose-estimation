@@ -11,13 +11,18 @@ import Algorithms
 import rclpy
 import time
 import numpy as np
+import os
 
+from ament_index_python.packages import get_package_share_directory
+
+
+PACKAGE_NAME = "iq_sim"
 
 TIMESTEP = 0.1
 CHECK_UPDATE_TIME = 5.0
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
-SWARM_COEF = np.array([1.0, 1.0, 0.0])
+SWARM_COEF = np.array([0.0, 1.0, 0.0])
 ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 
 SWARM_VEL = 0.2  # [m/s]
@@ -25,6 +30,31 @@ ANCHOR_VEL = 1.0
 
 
 class Main(Node):
+
+    def save_file(self):
+        self.timer.cancel()
+
+        # create folder for storing the data
+        package_path = get_package_share_directory(PACKAGE_NAME)
+        folder_path = os.path.join(
+            package_path, self.data_folder, f'noise {self.noise_dist_std}', self.run
+        )
+        os.makedirs(folder_path, exist_ok=True)
+
+        with open(os.path.join(folder_path, 'X_storage.txt'), 'w') as file:
+            np.savetxt(file, self.X_storage.reshape(
+                self.X_storage.shape[0], -1))
+            file.close()
+
+        with open(os.path.join(folder_path, 'X_mds_storage.txt'), 'w') as file:
+            np.savetxt(file, self.X_mds_storage.reshape(
+                self.X_mds_storage.shape[0], -1))
+            file.close()
+
+        with open(os.path.join(folder_path, 'X_wlp_storage.txt'), 'w') as file:
+            np.savetxt(file, self.X_wlp_storage.reshape(
+                self.X_wlp_storage.shape[0], -1))
+            file.close()
 
     def pose_reader_callback(self, received_msg, index):
         """
@@ -95,22 +125,20 @@ class Main(Node):
         # Run the algorithm
         X_mds = Algorithms.MDS(DM, PMs_tmp)
 
-        # Store the estimated coordinates
-        self.X_mds_storage[self.mds_index] = X_mds
 
+        # TODO: delete??
+        # The following covariance doesn't represent the uncertainty on the estimation.
+        # If storage is initialized with None it does not work; use zeros instead.
         # Compute the covaraince matrix
-        if (not self.mds_index):
-            Cov_mds = None
-        else:
-            Cov_mds = np.zeros((9, self.n_drones))
-            for i in range(self.n_drones):
-                Cov_mds[:, i] = np.cov(
-                    self.X_mds_storage[:self.mds_index+1, :, i], rowvar=False).flatten()
+        # # # if (not self.iter_counter):
+        # # #     Cov_mds = None
+        # # # else:
+        # # #     Cov_mds = np.zeros((9, self.n_drones))
+        # # #     for i in range(self.n_drones):
+        # # #         Cov_mds[:, i] = np.cov(
+        # # #             self.X_mds_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
 
-        # Update the storage counter
-        self.mds_index += 1
-
-        return X_mds, Cov_mds
+        return X_mds, None
 
     def WLP(self):
         """
@@ -132,22 +160,20 @@ class Main(Node):
         # Run the algorithm
         X_wlp = Algorithms.WLP(DM, PMs_tmp)
 
-        # Store the estimated coordinates
-        self.X_wlp_storage[self.wlp_index] = X_wlp
 
+        # TODO: delete??
+        # The following covariance doesn't represent the uncertainty on the estimation.
+        # If storage is initialized with None it does not work; use zeros instead.
         # Compute the covaraince matrix
-        if (not self.wlp_index):
-            Cov_wlp = None
-        else:
-            Cov_wlp = np.zeros((9, self.n_drones))
-            for i in range(self.n_drones):
-                Cov_wlp[:, i] = np.cov(
-                    self.X_wlp_storage[:self.wlp_index+1, :, i], rowvar=False).flatten()
+        # # # if (not self.iter_counter):
+        # # #     Cov_wlp = None
+        # # # else:
+        # # #     Cov_wlp = np.zeros((9, self.n_drones))
+        # # #     for i in range(self.n_drones):
+        # # #         Cov_wlp[:, i] = np.cov(
+        # # #             self.X_wlp_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
 
-        # Update the storage counter
-        self.wlp_index += 1
-
-        return X_wlp, Cov_wlp
+        return X_wlp, None
 
     def update(self):
         """
@@ -185,9 +211,16 @@ class Main(Node):
                 true_coords=self.coords,
                 MDS_coords=X_mds + self.offset.reshape(-1, 1),
                 WLP_coords=X_wlp + self.offset.reshape(-1, 1),
-                MDS_cov=Cov_mds,
-                WLP_cov=Cov_wlp
+                MDS_cov=Cov_mds,    # None now
+                WLP_cov=Cov_wlp     # None now
             )
+
+            # Store the values for plotting
+            self.X_storage[self.iter_counter] = self.coords - self.coords[:, 0].reshape(3, -1)
+            self.X_mds_storage[self.iter_counter] = X_mds
+            self.X_wlp_storage[self.iter_counter] = X_wlp
+
+            self.iter_counter += 1
 
         # Reset the booleans
         self.update_booleans[:] = False
@@ -266,7 +299,11 @@ class Main(Node):
         self.timestamp = now_timestamp
 
         # update swarm position by integration
-        self.offset += SWARM_COEF * SWARM_VEL * timestep
+        self.offset += SWARM_COEF * SWARM_VEL * timestep # self.coords
+
+        if self.iter_counter == self.max_iteration:
+            self.save_file()
+            exit(0)
 
     def start(self):
         self.timestamp = self.get_timestamp()
@@ -284,27 +321,48 @@ class Main(Node):
         super().__init__('main')
         print("Node that reads the distances, computes the coordinates, plots the results and guides the drones.")
 
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('altitude', rclpy.Parameter.Type.DOUBLE)
+        self.altitude = self.get_parameter(
+            'altitude').get_parameter_value().double_value
+
         # Parameters from ROS2 command line
         # rclpy.Parameter.Type.STRING
-        self.declare_parameter('environment', 'gazebo')
+        self.declare_parameter('environment', rclpy.Parameter.Type.STRING)
         self.environment = self.get_parameter(
             'environment').get_parameter_value().string_value
 
+        # rclpy.Parameter.Type.STRING
+        self.declare_parameter('data_folder', rclpy.Parameter.Type.STRING)
+        self.data_folder = self.get_parameter(
+            'data_folder').get_parameter_value().string_value
+
         # rclpy.Parameter.Type.INTEGER
-        self.declare_parameter('n_drones', 2)
+        self.declare_parameter('max_iteration', rclpy.Parameter.Type.INTEGER)
+        self.max_iteration = self.get_parameter(
+            'max_iteration').get_parameter_value().integer_value
+
+        # rclpy.Parameter.Type.INTEGER
+        self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
         self.n_drones = self.get_parameter(
             'n_drones').get_parameter_value().integer_value
 
         # rclpy.Parameter.Type.DOUBLE
-        self.declare_parameter('altitude', 5.0)
-        self.altitude = self.get_parameter(
-            'altitude').get_parameter_value().double_value
+        # only used for naming the folder
+        self.declare_parameter('noise_dist_std', rclpy.Parameter.Type.DOUBLE)
+        self.noise_dist_std = self.get_parameter(
+            'noise_dist_std').get_parameter_value().double_value
 
         # rclpy.Parameter.Type.DOUBLE
-        self.declare_parameter('noise_time_std', 0.0)
+        self.declare_parameter('noise_time_std', rclpy.Parameter.Type.DOUBLE)
         self.noise_time_std = self.get_parameter(
             'noise_time_std').get_parameter_value().double_value
         # TODO implement utilization
+
+        # rclpy.Parameter.Type.STRING
+        self.declare_parameter('run', rclpy.Parameter.Type.STRING)
+        self.run = self.get_parameter(
+            'run').get_parameter_value().string_value
 
         # Attributes initialization
         # management
@@ -315,8 +373,7 @@ class Main(Node):
         self.algorithms = False
         self.updating = False
         self.update_booleans = np.zeros((self.n_drones,), dtype=bool)
-        self.mds_index = 0
-        self.wlp_index = 0
+        self.iter_counter = 0
 
         # measurements
         self.coords = np.zeros((3, self.n_drones))
@@ -324,8 +381,9 @@ class Main(Node):
         self.PMs = np.zeros((3, self.n_meas))
         self.DMs = np.zeros((self.n_meas, self.n_drones, self.n_drones))
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
-        self.X_mds_storage = np.zeros((1000, 3, self.n_drones))
-        self.X_wlp_storage = np.zeros((1000, 3, self.n_drones))
+        self.X_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
+        self.X_mds_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
+        self.X_wlp_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):

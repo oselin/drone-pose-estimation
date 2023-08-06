@@ -1,8 +1,17 @@
-config:
+hub:
+  ros__parameters:
+    noise_dist_std: 0.0
+
+main:
   ros__parameters:
     altitude: 5.0
-    noise_dist_std: 0.1
-    
+    environment: "test"
+    data_folder: "data"
+    max_iteration: 5
+    noise_dist_std: 0.2
+    noise_time_std: 0.0
+    run: 'run3'
+
 
 
 ## From main

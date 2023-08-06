@@ -10,6 +10,7 @@ from Plot import class_name
 from Control.topics import *
 
 
+
 TIMESTEP = 0.1
 
 class Hub(Node):
@@ -59,11 +60,9 @@ class Hub(Node):
 
 
         # rclpy.Parameter.Type.DOUBLE
-        self.declare_parameter('noise_dist_std', 0.0)
+        self.declare_parameter('noise_dist_std', rclpy.Parameter.Type.DOUBLE)
         self.noise_dist_std = self.get_parameter(
             'noise_dist_std').get_parameter_value().double_value
-
-        print(self.noise_dist_std)
 
         # Pre-allocation of memory
         self.distances = np.zeros((self.n_drones, self.n_drones))         
