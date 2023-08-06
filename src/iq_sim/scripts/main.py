@@ -193,7 +193,7 @@ class Main(Node):
         # Update: x_(n) = x_(n-1) + Delta_x
         prev_pos = self.PMs[:, self.meas_index - 1]
         anchor_mov = ANCHOR_COEF[self.phase_index] * \
-            ANCHOR_VEL * self.anchor_timestep
+            ANCHOR_VEL * ANCHOR_MOV_TIME # self.anchor_timestep
 
         self.PMs[:, self.meas_index] = prev_pos + anchor_mov
 
@@ -216,7 +216,7 @@ class Main(Node):
             )
 
             # Store the values for plotting
-            self.X_storage[self.iter_counter] = self.coords - self.coords[:, 0].reshape(3, -1)
+            self.X_storage[self.iter_counter] = self.coords - self.offset.reshape(3, -1)
             self.X_mds_storage[self.iter_counter] = X_mds
             self.X_wlp_storage[self.iter_counter] = X_wlp
 
@@ -299,10 +299,11 @@ class Main(Node):
         self.timestamp = now_timestamp
 
         # update swarm position by integration
-        self.offset += SWARM_COEF * SWARM_VEL * timestep # self.coords
+        self.offset += SWARM_COEF * SWARM_VEL * TIMESTEP # timestep # self.coords
 
         if self.iter_counter == self.max_iteration:
             self.save_file()
+            self.get_logger().info("End")
             exit(0)
 
     def start(self):

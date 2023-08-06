@@ -1,16 +1,16 @@
 hub:
   ros__parameters:
-    noise_dist_std: 0.0
+    noise_dist_std: 0.1
 
 main:
   ros__parameters:
     altitude: 5.0
     environment: "test"
     data_folder: "data"
-    max_iteration: 5
-    noise_dist_std: 0.2
-    noise_time_std: 0.0
-    run: 'run3'
+    max_iteration: 30
+    noise_dist_std: 0.1
+    noise_time_std: 0.1
+    run: 'run1'
 
 
 

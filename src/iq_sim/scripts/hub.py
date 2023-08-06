@@ -35,7 +35,7 @@ class Hub(Node):
 
     def update_distances(self):
         noise =  Algorithms.noise(0, self.noise_dist_std, shape=self.distances.shape)
-        self.distances = Algorithms.distance_matrix(self.coords) + noise ** 2
+        self.distances = Algorithms.distance_matrix(self.coords) + 0.05 + noise ** 2
 
     def cycle_callback(self):
         """
