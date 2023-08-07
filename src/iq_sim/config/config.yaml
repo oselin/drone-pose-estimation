@@ -1,6 +1,6 @@
 hub:
   ros__parameters:
-    noise_dist_std: 0.1
+    noise_dist_std: 0.02
 
 main:
   ros__parameters:
@@ -8,11 +8,9 @@ main:
     environment: "test"
     data_folder: "data"
     max_iteration: 30
-    noise_dist_std: 0.1
+    noise_dist_std: 0.02 # remember to change it for hub, which is where it is set
     noise_time_std: 0.1
-    run: 'run1'
-
-
+    run: "run1"
 
 ## From main
 # TIMESTEP = 0.1
@@ -22,14 +20,11 @@ main:
 # SWARM_COEF  = np.array([0.0, 1.0, 0.0])
 # ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 
-
-
 # SWARM_VEL = 0.2  # [m/s]
 # ANCHOR_VEL = 1.0
 
 ## From Hub.py
 # TIMESTEP = 0.02
-
 
 ## From test.py
 # TIMESTEP = 0.02 # to put in the config file # 10 ms are enough

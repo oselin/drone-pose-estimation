@@ -35,7 +35,7 @@ class Hub(Node):
 
     def update_distances(self):
         noise =  Algorithms.noise(0, self.noise_dist_std, shape=self.distances.shape)
-        self.distances = Algorithms.distance_matrix(self.coords) + 0.05 + noise ** 2
+        self.distances = Algorithms.distance_matrix(self.coords) + noise ** 2
 
     def cycle_callback(self):
         """
@@ -45,7 +45,6 @@ class Hub(Node):
         """
         self.update_distances()
         self.write_distances()
-
 
     def __init__(self):
 
@@ -57,7 +56,6 @@ class Hub(Node):
         # Parameters from ROS2 command line
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
         self.n_drones = self.get_parameter('n_drones').get_parameter_value().integer_value
-
 
         # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('noise_dist_std', rclpy.Parameter.Type.DOUBLE)

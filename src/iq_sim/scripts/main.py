@@ -22,7 +22,7 @@ TIMESTEP = 0.1
 CHECK_UPDATE_TIME = 5.0
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
-SWARM_COEF = np.array([0.0, 1.0, 0.0])
+SWARM_COEF = np.array([0.0, 0.0, 0.0])
 ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 
 SWARM_VEL = 0.2  # [m/s]
@@ -105,26 +105,17 @@ class Main(Node):
         # set the z-coordinates of the anchor to "altitude", according to the takeoff
         self.PMs[2, 0] = self.altitude
 
-    def MDS(self):
+    def MDS(self, DM, PMs_tmp):
         """
         Run MDS algorithm defined in the Algorithms class, by assembling the
         disance matrices in one unique [n+3, n+3] matrix.
         Return:
             - Coordinates of the drones swarm estimated via the algorithm.
         """
-        # Shift based on the meas index
-        DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
-        PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
-
-        # Assemble the full distance matrix
-        DM = Algorithms.combine_matrices(
-            DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
-            PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
-        )
+        t_mds = self.get_timestamp()
 
         # Run the algorithm
         X_mds = Algorithms.MDS(DM, PMs_tmp)
-
 
         # TODO: delete??
         # The following covariance doesn't represent the uncertainty on the estimation.
@@ -138,28 +129,19 @@ class Main(Node):
         # # #         Cov_mds[:, i] = np.cov(
         # # #             self.X_mds_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
 
-        return X_mds, None
+        return X_mds, None, self.get_timestamp()-t_mds
 
-    def WLP(self):
+    def WLP(self, DM, PMs_tmp):
         """
         Run WLP algorithm defined in the Algorithms class, by assembling the
         disance matrices in one unique [n+3, n+3] matrix.
         Return:
             - Coordinates of the drones swarm estimated via the algorithm.
         """
-        # Shift based on the meas index
-        DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
-        PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
-
-        # Assemble the full distance matrix
-        DM = Algorithms.combine_matrices(
-            DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
-            PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
-        )
+        t_wlp = self.get_timestamp()
 
         # Run the algorithm
         X_wlp = Algorithms.WLP(DM, PMs_tmp)
-
 
         # TODO: delete??
         # The following covariance doesn't represent the uncertainty on the estimation.
@@ -173,7 +155,7 @@ class Main(Node):
         # # #         Cov_wlp[:, i] = np.cov(
         # # #             self.X_wlp_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
 
-        return X_wlp, None
+        return X_wlp, None, self.get_timestamp()-t_wlp
 
     def update(self):
         """
@@ -201,10 +183,20 @@ class Main(Node):
         self.DMs[self.meas_index] = np.copy(self.DM_buffer)
 
         if (self.algorithms):
+            # Shift based on the meas index
+            DMs_tmp = np.roll(self.DMs, -self.meas_index, axis=0)
+            PMs_tmp = np.roll(self.PMs, -self.meas_index, axis=1)
+
+            # Assemble the full distance matrix
+            DM = Algorithms.combine_matrices(
+                DMs_tmp[0], DMs_tmp[1], DMs_tmp[2], DMs_tmp[3],
+                PMs_tmp[:, 0], PMs_tmp[:, 1], PMs_tmp[:, 2], PMs_tmp[:, 3]
+            )
 
             # Run algorithms
-            X_mds, Cov_mds = self.MDS()
-            X_wlp, Cov_wlp = self.WLP()
+            X_mds, Cov_mds, time_mds = self.MDS(DM, PMs_tmp)
+            X_wlp, Cov_wlp, time_wlp = self.WLP(DM, PMs_tmp) 
+            self.times[self.iter_counter] = np.array([self.timestamp, time_mds, time_wlp])
 
             # Update the plot
             self.plot.update(
@@ -225,9 +217,8 @@ class Main(Node):
         # Reset the booleans
         self.update_booleans[:] = False
 
-        # Update cycle management
-        self.mov_time = ANCHOR_MOV_TIME + \
-            Algorithms.noise(0, self.noise_time_std, shape=1)
+        # Update cycle management # + \ Algorithms.noise(0, self.noise_time_std, shape=1)
+        self.mov_time = ANCHOR_MOV_TIME 
         self.meas_index = (self.meas_index + 1) % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
         self.anchor_timestamp = self.get_timestamp()
@@ -385,6 +376,7 @@ class Main(Node):
         self.X_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
         self.X_mds_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
         self.X_wlp_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
+        self.times = np.tile(np.nan, (self.max_iteration, 3))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):

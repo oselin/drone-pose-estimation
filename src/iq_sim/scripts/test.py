@@ -10,7 +10,6 @@ import numpy as np
 
 import Algorithms
 
-
 TIMESTEP = 0.1  # to put in the config file # 10 ms are enough
 
 
@@ -40,7 +39,9 @@ class Test(Node):
         states variable stores information as following: [x, y, z, vel_x, vel_y, vel_z]
         """
         now_timestamp = self.get_timestamp()
-        self.states[:3] += self.states[3:] * (now_timestamp - self.timestamp)
+        self.states[:3] += self.states[3:] * (now_timestamp - self.timestamp) 
+        # noise = Algorithms.noise(0.001, 0.001, shape=self.states[:3,0].shape)
+        # self.states[:3,0] += noise
         self.timestamp = now_timestamp
 
     def write(self):
@@ -84,7 +85,8 @@ class Test(Node):
         # Class attributes, initialized for allocating memory
         # states = [[x, y, z, vel_x, vel_y, vel_z]^T, ...]
         self.states = np.zeros((6, self.n_drones))
-        self.states[0] = np.array([range(self.n_drones)])
+        self.states[:3, 1:] = np.random.uniform(low = 1, high=9, size=[3, self.n_drones-1])
+
         self.writers = np.tile(None, (self.n_drones, ))
 
         def get_timestamp():
