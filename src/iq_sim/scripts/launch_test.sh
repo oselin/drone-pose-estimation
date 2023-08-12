@@ -21,35 +21,40 @@ echo 'Building the project with the new files...'
 cd $SCRIPTPATH/../../..
 colcon build
 
+echo
+echo
 
 # Launch test N times, set N here 
-N=10
+N=50
 for ((i = 0; i < $N; i++)); do
-    echo "Launching test [($i+1)/$N]"
 
-    echo
-    echo 'Launching test.py...'
+    idx=$((i + 1))
+    echo "Launching test [$idx/$N]"
+
     gnome-terminal --tab -- bash -c "ros2 run iq_sim test.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 "
-    echo 'test.py launched!'
+    echo '  test.py launched!'
     sleep 5
 
     # Launch ROS2 node to calculate the distances from the drones' coordinates
-    echo
-    echo 'Launching the hub...'
     gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 "
-    echo 'hub launched!'
+    echo '  hub launched!'
     sleep 5 
 
     # Launch the script main.py for running MDS, plotting the results and guiding the drones
-    echo
-    echo 'Launching main.py...'
-    gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 "
-    echo 'main.py launched!'
+    gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 -p run:='run$idx' " 
+    main_pid=$!
+    echo '  main.py launched!'
 
-    sleep 400
-    pkill test.py
-    pkill hub.py
-    pkill main.py
+    # something with "wait PID" would be better, but..
+    sleep 300
+    pkill -f test.py
+    pkill -f hub.py
+    pkill -f main.py
+
+    echo "Terminated test [$idx/$N]"
+    echo
+
+    sleep 5
 done
 
 

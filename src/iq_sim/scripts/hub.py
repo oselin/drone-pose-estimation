@@ -11,8 +11,6 @@ from Control.topics import *
 
 
 
-TIMESTEP = 0.1
-
 class Hub(Node):
 
     def pose_reader_callback(self, received_msg, index):
@@ -62,6 +60,11 @@ class Hub(Node):
         self.noise_dist_std = self.get_parameter(
             'noise_dist_std').get_parameter_value().double_value
 
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('timestep', rclpy.Parameter.Type.DOUBLE)
+        self.timestep = self.get_parameter(
+            'timestep').get_parameter_value().double_value
+        
         # Pre-allocation of memory
         self.distances = np.zeros((self.n_drones, self.n_drones))         
         self.coords = np.zeros((3, self.n_drones))   
@@ -87,7 +90,7 @@ class Hub(Node):
             ))
 
         # Loop over time
-        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+        self.timer = self.create_timer(self.timestep, self.cycle_callback)
 
 
 def main(args=None):

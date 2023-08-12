@@ -10,9 +10,6 @@ import numpy as np
 
 import Algorithms
 
-TIMESTEP = 0.1  # to put in the config file # 10 ms are enough
-
-
 class Test(Node):
 
     def velocity_reader_callback(self, received_msg, index):
@@ -39,9 +36,14 @@ class Test(Node):
         states variable stores information as following: [x, y, z, vel_x, vel_y, vel_z]
         """
         now_timestamp = self.get_timestamp()
+
+        # single integrator
         self.states[:3] += self.states[3:] * (now_timestamp - self.timestamp) 
-        # noise = Algorithms.noise(0.001, 0.001, shape=self.states[:3,0].shape)
-        # self.states[:3,0] += noise
+
+        # system dynamic noise (not always considered)
+        dyna_noise = Algorithms.noise(0.0, self.noise_dyna_std, shape=self.states[:3,0].shape)
+        self.states[:3,0] += dyna_noise
+        
         self.timestamp = now_timestamp
 
     def write(self):
@@ -82,6 +84,16 @@ class Test(Node):
         self.n_drones = self.get_parameter(
             'n_drones').get_parameter_value().integer_value
 
+
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('noise_dyna_std', rclpy.Parameter.Type.DOUBLE)
+        self.noise_dyna_std = self.get_parameter(
+            'noise_dyna_std').get_parameter_value().double_value
+
+        self.declare_parameter('timestep', rclpy.Parameter.Type.DOUBLE)
+        self.timestep = self.get_parameter(
+            'timestep').get_parameter_value().double_value
+
         # Class attributes, initialized for allocating memory
         # states = [[x, y, z, vel_x, vel_y, vel_z]^T, ...]
         self.states = np.zeros((6, self.n_drones))
@@ -116,7 +128,7 @@ class Test(Node):
             )
 
         # Loop over time
-        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+        self.timer = self.create_timer(self.timestep, self.cycle_callback)
 
 
 def main(args=None):

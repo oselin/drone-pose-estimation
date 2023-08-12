@@ -18,7 +18,6 @@ from ament_index_python.packages import get_package_share_directory
 
 PACKAGE_NAME = "iq_sim"
 
-TIMESTEP = 0.1
 CHECK_UPDATE_TIME = 5.0
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
@@ -28,7 +27,6 @@ ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 SWARM_VEL = 0.2  # [m/s]
 ANCHOR_VEL = 1.0
 
-
 class Main(Node):
 
     def save_file(self):
@@ -37,7 +35,7 @@ class Main(Node):
         # create folder for storing the data
         package_path = get_package_share_directory(PACKAGE_NAME)
         folder_path = os.path.join(
-            package_path, self.data_folder, f'noise {self.noise_dist_std}', self.run
+            package_path, self.data_folder, self.setting, self.run
         )
         os.makedirs(folder_path, exist_ok=True)
 
@@ -54,6 +52,10 @@ class Main(Node):
         with open(os.path.join(folder_path, 'X_ls_storage.txt'), 'w') as file:
             np.savetxt(file, self.X_ls_storage.reshape(
                 self.X_ls_storage.shape[0], -1))
+            file.close()
+
+        with open(os.path.join(folder_path, 'times.txt'), 'w') as file:
+            np.savetxt(file, self.times)
             file.close()
 
     def pose_reader_callback(self, received_msg, index):
@@ -162,9 +164,10 @@ class Main(Node):
         Update the following class parameters:
             - anchor position
             - distance matrix
-            - measurement index
-            - phase index
-            - movement time
+            - run algorithms
+            - update_booleans
+            - indexes
+            - movement time (new noise)
             - timestamp
         """
         # The algorithms require at least 4 iterations.
@@ -172,12 +175,10 @@ class Main(Node):
         if (not self.algorithms and self.phase_index > 3):
             self.algorithms = True
 
-        # Update: x_(n) = x_(n-1) + Delta_x
+        # Update anchor pos: x_(n) = x_(n-1) + Delta_x
         prev_pos = self.PMs[:, self.meas_index - 1]
-        anchor_mov = ANCHOR_COEF[self.phase_index] * \
-            ANCHOR_VEL * ANCHOR_MOV_TIME # self.anchor_timestep
-
-        self.PMs[:, self.meas_index] = prev_pos + anchor_mov
+        delta_s = ANCHOR_COEF[self.phase_index] * ANCHOR_VEL * ANCHOR_MOV_TIME
+        self.PMs[:, self.meas_index] = prev_pos + delta_s
 
         # Store the just received distance matrix for the i-th (meas_index) iteration
         self.DMs[self.meas_index] = np.copy(self.DM_buffer)
@@ -195,8 +196,9 @@ class Main(Node):
 
             # Run algorithms
             X_mds, Cov_mds, time_mds = self.MDS(DM, PMs_tmp)
-            X_ls, Cov_ls, time_ls = self.LS(DM, PMs_tmp) 
-            self.times[self.iter_counter] = np.array([self.timestamp, time_mds, time_ls])
+            X_ls, Cov_ls, time_ls = self.LS(DM, PMs_tmp)
+            self.times[self.iter_counter] = np.array(
+                [self.timestamp, time_mds, time_ls])
 
             # Update the plot
             self.plot.update(
@@ -204,11 +206,12 @@ class Main(Node):
                 MDS_coords=X_mds + self.offset.reshape(-1, 1),
                 LS_coords=X_ls + self.offset.reshape(-1, 1),
                 MDS_cov=Cov_mds,    # None now
-                LS_cov=Cov_ls     # None now
+                LS_cov=Cov_ls       # None now
             )
 
             # Store the values for plotting
-            self.X_storage[self.iter_counter] = self.coords - self.offset.reshape(3, -1)
+            self.X_storage[self.iter_counter] = self.coords - \
+                self.offset.reshape(3, -1)
             self.X_mds_storage[self.iter_counter] = X_mds
             self.X_ls_storage[self.iter_counter] = X_ls
 
@@ -217,11 +220,12 @@ class Main(Node):
         # Reset the booleans
         self.update_booleans[:] = False
 
-        # Update cycle management # + \ Algorithms.noise(0, self.noise_time_std, shape=1)
-        self.mov_time = ANCHOR_MOV_TIME 
+        # Update cycle management #
+        time_noise = Algorithms.noise(0, self.noise_time_std, shape=1)
+        self.mov_time = ANCHOR_MOV_TIME + time_noise
         self.meas_index = (self.meas_index + 1) % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
-        self.anchor_timestamp = self.get_timestamp()
+        self.timestamp = self.get_timestamp()
 
     def check_update(self):
         """
@@ -231,7 +235,7 @@ class Main(Node):
             self.check_update_timer.cancel()
             self.update()
             self.updating = False
-wlp
+
     def move_swarm(self, anchor):
         """
         Move the drone swarm by sending velcity values.
@@ -266,15 +270,12 @@ wlp
             # move all the drones simultaneously
             self.move_swarm(anchor=True)
         else:
-            if ((now_timestamp - self.anchor_timestamp) >= self.mov_time):
+            if ((now_timestamp - self.timestamp) >= self.mov_time):
                 # block the possibility to perform another update and tell the cb to flag the booleans
                 self.updating = True
 
                 # make the swarm to keep going on
                 self.move_swarm(anchor=True)
-
-                # update the info to know how much the anchor has moved
-                self.anchor_timestep = now_timestamp-self.anchor_timestamp
 
                 # leave the time to update the distances and perform the update
                 self.check_update_timer = self.create_timer(
@@ -285,12 +286,8 @@ wlp
                 self.move_swarm(anchor=False)
                 self.move_anchor()
 
-        # take into account the real time elapsed from the previous movement
-        timestep = now_timestamp - self.timestamp
-        self.timestamp = now_timestamp
-
         # update swarm position by integration
-        self.offset += SWARM_COEF * SWARM_VEL * TIMESTEP # timestep # self.coords
+        self.offset += SWARM_COEF * SWARM_VEL * self.timestep
 
         if self.iter_counter == self.max_iteration:
             self.save_file()
@@ -299,11 +296,10 @@ wlp
 
     def start(self):
         self.timestamp = self.get_timestamp()
-        self.anchor_timestamp = self.timestamp
 
         self.move_swarm(anchor=True)
 
-        self.timer = self.create_timer(TIMESTEP, self.cycle_callback)
+        self.timer = self.create_timer(self.timestep, self.cycle_callback)
         self.start_timer.cancel()
 
     def __init__(self):
@@ -340,21 +336,24 @@ wlp
             'n_drones').get_parameter_value().integer_value
 
         # rclpy.Parameter.Type.DOUBLE
-        # only used for naming the folder
-        self.declare_parameter('noise_dist_std', rclpy.Parameter.Type.DOUBLE)
-        self.noise_dist_std = self.get_parameter(
-            'noise_dist_std').get_parameter_value().double_value
-
-        # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('noise_time_std', rclpy.Parameter.Type.DOUBLE)
         self.noise_time_std = self.get_parameter(
             'noise_time_std').get_parameter_value().double_value
-        # TODO implement utilization
 
         # rclpy.Parameter.Type.STRING
         self.declare_parameter('run', rclpy.Parameter.Type.STRING)
         self.run = self.get_parameter(
             'run').get_parameter_value().string_value
+
+        # rclpy.Parameter.Type.STRING
+        self.declare_parameter('setting', rclpy.Parameter.Type.STRING)
+        self.setting = self.get_parameter(
+            'setting').get_parameter_value().string_value
+
+        # rclpy.Parameter.Type.DOUBLE
+        self.declare_parameter('timestep', rclpy.Parameter.Type.DOUBLE)
+        self.timestep = self.get_parameter(
+            'timestep').get_parameter_value().double_value
 
         # Attributes initialization
         # management
@@ -367,16 +366,16 @@ wlp
         self.update_booleans = np.zeros((self.n_drones,), dtype=bool)
         self.iter_counter = 0
 
-        # measurements
+        # measurements and storage
         self.coords = np.zeros((3, self.n_drones))
         self.offset = np.zeros((3,))
         self.PMs = np.zeros((3, self.n_meas))
         self.DMs = np.zeros((self.n_meas, self.n_drones, self.n_drones))
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
-        self.X_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
-        self.X_mds_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
-        self.X_ls_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
-        self.times = np.tile(np.nan, (self.max_iteration, 3))
+        self.X_storage = np.zeros((self.max_iteration, 3, self.n_drones))
+        self.X_mds_storage = np.zeros((self.max_iteration, 3, self.n_drones))
+        self.X_ls_storage = np.zeros((self.max_iteration, 3, self.n_drones))
+        self.times = np.zeros((self.max_iteration, 3))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
@@ -422,9 +421,7 @@ wlp
             return now.sec+now.nanosec/1e9
 
         self.get_timestamp = get_timestamp
-        self.timestamp = 0.0        # for each cycle
-        self.anchor_timestep = 0.0
-        self.anchor_timestamp = 0.0  # for the anchor movement
+        self.timestamp = 0.0     # to stop the anchor movement
 
         # Just wait some seconds (10) and start..
         # Needed to allow a better estimation of the anchor movement
