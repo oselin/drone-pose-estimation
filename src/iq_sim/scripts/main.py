@@ -51,9 +51,9 @@ class Main(Node):
                 self.X_mds_storage.shape[0], -1))
             file.close()
 
-        with open(os.path.join(folder_path, 'X_wlp_storage.txt'), 'w') as file:
-            np.savetxt(file, self.X_wlp_storage.reshape(
-                self.X_wlp_storage.shape[0], -1))
+        with open(os.path.join(folder_path, 'X_ls_storage.txt'), 'w') as file:
+            np.savetxt(file, self.X_ls_storage.reshape(
+                self.X_ls_storage.shape[0], -1))
             file.close()
 
     def pose_reader_callback(self, received_msg, index):
@@ -131,31 +131,31 @@ class Main(Node):
 
         return X_mds, None, self.get_timestamp()-t_mds
 
-    def WLP(self, DM, PMs_tmp):
+    def LS(self, DM, PMs_tmp):
         """
-        Run WLP algorithm defined in the Algorithms class, by assembling the
+        Run LS algorithm defined in the Algorithms class, by assembling the
         disance matrices in one unique [n+3, n+3] matrix.
         Return:
             - Coordinates of the drones swarm estimated via the algorithm.
         """
-        t_wlp = self.get_timestamp()
+        t_ls = self.get_timestamp()
 
         # Run the algorithm
-        X_wlp = Algorithms.WLP(DM, PMs_tmp)
+        X_ls = Algorithms.LS(DM, PMs_tmp)
 
         # TODO: delete??
         # The following covariance doesn't represent the uncertainty on the estimation.
         # If storage is initialized with None it does not work; use zeros instead.
         # Compute the covaraince matrix
         # # # if (not self.iter_counter):
-        # # #     Cov_wlp = None
+        # # #     Cov_ls = None
         # # # else:
-        # # #     Cov_wlp = np.zeros((9, self.n_drones))
+        # # #     Cov_ls = np.zeros((9, self.n_drones))
         # # #     for i in range(self.n_drones):
-        # # #         Cov_wlp[:, i] = np.cov(
-        # # #             self.X_wlp_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
+        # # #         Cov_ls[:, i] = np.cov(
+        # # #             self.X_ls_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
 
-        return X_wlp, None, self.get_timestamp()-t_wlp
+        return X_ls, None, self.get_timestamp()-t_ls
 
     def update(self):
         """
@@ -195,22 +195,22 @@ class Main(Node):
 
             # Run algorithms
             X_mds, Cov_mds, time_mds = self.MDS(DM, PMs_tmp)
-            X_wlp, Cov_wlp, time_wlp = self.WLP(DM, PMs_tmp) 
-            self.times[self.iter_counter] = np.array([self.timestamp, time_mds, time_wlp])
+            X_ls, Cov_ls, time_ls = self.LS(DM, PMs_tmp) 
+            self.times[self.iter_counter] = np.array([self.timestamp, time_mds, time_ls])
 
             # Update the plot
             self.plot.update(
                 true_coords=self.coords,
                 MDS_coords=X_mds + self.offset.reshape(-1, 1),
-                WLP_coords=X_wlp + self.offset.reshape(-1, 1),
+                LS_coords=X_ls + self.offset.reshape(-1, 1),
                 MDS_cov=Cov_mds,    # None now
-                WLP_cov=Cov_wlp     # None now
+                LS_cov=Cov_ls     # None now
             )
 
             # Store the values for plotting
             self.X_storage[self.iter_counter] = self.coords - self.offset.reshape(3, -1)
             self.X_mds_storage[self.iter_counter] = X_mds
-            self.X_wlp_storage[self.iter_counter] = X_wlp
+            self.X_ls_storage[self.iter_counter] = X_ls
 
             self.iter_counter += 1
 
@@ -231,7 +231,7 @@ class Main(Node):
             self.check_update_timer.cancel()
             self.update()
             self.updating = False
-
+wlp
     def move_swarm(self, anchor):
         """
         Move the drone swarm by sending velcity values.
@@ -375,7 +375,7 @@ class Main(Node):
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
         self.X_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
         self.X_mds_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
-        self.X_wlp_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
+        self.X_ls_storage = np.tile(np.nan, (self.max_iteration, 3, self.n_drones))
         self.times = np.tile(np.nan, (self.max_iteration, 3))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
@@ -410,7 +410,7 @@ class Main(Node):
         self.plot = Plot(
             mode='2D',
             display_MDS=True,
-            display_WLP=True,
+            display_LS=True,
             reduction_method='xy',
             display_covariance=True,
         )

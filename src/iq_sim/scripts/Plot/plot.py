@@ -63,12 +63,12 @@ class Plot():
         """
         Return axis and coordinates for the given frame.
         Parameters:
-            - frame: 'MDS' or 'WLP'
+            - frame: 'MDS' or 'LS'
         """
         if (frame == 'MDS'):
             return self.__axis_MDS, self.__MDS_coords, self.__MDS_cov
         else:
-            return self.__axis_WLP, self.__WLP_coords, self.__WLP_cov
+            return self.__axis_LS, self.__LS_coords, self.__LS_cov
 
     def __data_to_2D(self, data):
         """
@@ -90,7 +90,7 @@ class Plot():
         """
         Update the plot.
         Parameters:
-            - frame: MDS or WLP to choose the data
+            - frame: MDS or LS to choose the data
         """
         axis, data, _ = self.__get_data(frame)
 
@@ -129,7 +129,7 @@ class Plot():
         """
         Draw the covariance ellipse. Note: it works only for 2D plots.
         Parameters:
-            - frame: either MDS or WLP
+            - frame: either MDS or LS
             - confidence: confidence level to be plotted
         """
 
@@ -178,14 +178,14 @@ class Plot():
             ani_mds = animation.FuncAnimation(self.__figure_MDS, lambda _: self.__update_plot('MDS'),
                                               frames=None, interval=self.__frequency, cache_frame_data=False)
 
-        if (self.__display_WLP):
-            self.__figure_WLP, self.__axis_WLP = self.__initialize_figure(
-                'WLP algorithm', 1500, 800)
-            ani_wlp = animation.FuncAnimation(self.__figure_WLP, lambda _: self.__update_plot('WLP'),
+        if (self.__display_LS):
+            self.__figure_LS, self.__axis_LS = self.__initialize_figure(
+                'LS algorithm', 1500, 800)
+            ani_LS = animation.FuncAnimation(self.__figure_LS, lambda _: self.__update_plot('LS'),
                                               frames=None, interval=self.__frequency, cache_frame_data=False)
         plt.show()
 
-    def __init__(self, mode='2D', display_MDS=True, display_WLP=True,
+    def __init__(self, mode='2D', display_MDS=True, display_LS=True,
                  frequency=200, reduction_method='PCA', disable_toolbar=True,
                  display_covariance=False):
         """
@@ -193,7 +193,7 @@ class Plot():
         Parameters:
             - mode: 2D and 3D options available
             - display_MDS: show MDS data. True by default
-            - display_WLP: show WLP data. True by default
+            - display_LS: show LS data. True by default
             - display_covariance: plot covariance ellipse. False by default
             - frequency: time between each plot update        
             - reduction_method: only for 2D mode - method for dimensionality reduction
@@ -213,7 +213,7 @@ class Plot():
         if (mode == '3D' and display_covariance):
             raise ValueError("Covariance can be plotted only in 2D, not 3D.")
 
-        if (not (display_MDS or display_WLP) and display_covariance):
+        if (not (display_MDS or display_LS) and display_covariance):
             raise ValueError(
                 "At least one method must be plotted to plot covariance.")
 
@@ -227,13 +227,13 @@ class Plot():
         # Set the class attributes
         self.__mode = mode
         self.__display_MDS = display_MDS
-        self.__display_WLP = display_WLP
+        self.__display_LS = display_LS
         self.__frequency = frequency
         self.__disable_toolbar = disable_toolbar
         self.__display_cov = display_covariance
         self.__reduction_method = reduction_method
 
-        self.__true_coords, self.__MDS_coords, self.__WLP_coords, self.__MDS_cov, self.__WLP_cov  \
+        self.__true_coords, self.__MDS_coords, self.__LS_coords, self.__MDS_cov, self.__LS_cov  \
             = None, None, None, None, None
 
     def start(self):
@@ -244,16 +244,16 @@ class Plot():
         self.plot_thread.start()
 
     def update(self, true_coords: np.ndarray,
-               MDS_coords: np.ndarray = None, WLP_coords: np.ndarray = None,
-               MDS_cov: np.ndarray = None, WLP_cov: np.ndarray = None):
+               MDS_coords: np.ndarray = None, LS_coords: np.ndarray = None,
+               MDS_cov: np.ndarray = None, LS_cov: np.ndarray = None):
         """
         Update the stored data for the respective plot.
         Parameters:
             - true_coords: true coordinates of points
             - MDS_coords: coordinates estimated via MDS algorithm
-            - WLP_coords: corrdinates estimated via WLP algorithm
+            - LS_coords: corrdinates estimated via LS algorithm
             - MDS_cov: covariance matrix associated to each point, estimated via MDS algorithm
-            - WLP_cov: covariance matrix associated to each point, estimated via WLP algorithm
+            - LS_cov: covariance matrix associated to each point, estimated via LS algorithm
         """
 
         if (true_coords is not None):   # True coordinates update
@@ -277,19 +277,19 @@ class Plot():
                 raise ValueError(
                     "MDS_cov is not of type np.ndarray or MDS was not set to visible during class initialization")
 
-        if (WLP_coords is not None):    # Mean update
-            if (type(WLP_coords) == np.ndarray and self.__display_WLP):
-                self.__WLP_coords = WLP_coords
+        if (LS_coords is not None):    # Mean update
+            if (type(LS_coords) == np.ndarray and self.__display_LS):
+                self.__LS_coords = LS_coords
             else:
                 raise ValueError(
-                    "WLP_coords is not of type np.ndarray or WLP was not set to visible during class initialization")
+                    "LS_coords is not of type np.ndarray or LS was not set to visible during class initialization")
 
-        if (WLP_cov is not None):       # Covariance update
-            if (type(MDS_cov) == np.ndarray and self.__display_WLP and self.__display_cov):
-                self.__WLP_cov = WLP_cov
+        if (LS_cov is not None):       # Covariance update
+            if (type(MDS_cov) == np.ndarray and self.__display_LS and self.__display_cov):
+                self.__LS_cov = LS_cov
             else:
                 raise ValueError(
-                    "WLP_cov is not of type np.ndarray or WLP was not set to visible during class initialization")
+                    "LS_cov is not of type np.ndarray or LS was not set to visible during class initialization")
 
 
 #
@@ -299,7 +299,7 @@ class Plot():
 # if __name__ == '__main__':
 #     import time
 #     # Initialize the class
-#     test = Plot(mode='2D', display_MDS=True, display_WLP=True, )
+#     test = Plot(mode='2D', display_MDS=True, display_LS=True, )
 
 #     # Start the thread
 #     test.start()
@@ -310,5 +310,5 @@ class Plot():
 #         data2 = np.random.uniform(low=-2, high=2, size=(3,10))
 #         data3 = np.random.uniform(low=-2, high=2, size=(3,10))
 
-#         test.update(true_coords=data1, MDS_coords=data2, WLP_coords=data3, MDS_cov=None, WLP_cov=None)
+#         test.update(true_coords=data1, MDS_coords=data2, LS_coords=data3, MDS_cov=None, LS_cov=None)
 #         time.sleep(2)

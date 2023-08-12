@@ -123,7 +123,7 @@ def sphere(x, x_a, d):
     return (x[0] - x_a[0])**2 + (x[1] - x_a[1])**2 + (x[2] - x_a[2])**2 - d
 
 
-def WLP(distance_matrix, anchor_pos):
+def LS(distance_matrix, anchor_pos):
     """
     distance_matrix:
     X : anchor coords that are known
