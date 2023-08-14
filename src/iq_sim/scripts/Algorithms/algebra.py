@@ -137,7 +137,6 @@ def LS(distance_matrix, anchor_pos):
     distances = np.vstack([distance_matrix[0, 1:-3], distance_matrix[-3, 1:-3],
                           distance_matrix[-2, 1:-3], distance_matrix[-1, 1:-3]])
 
-    distances[2,:] += 0.3
     assert len(distances) == 4
 
     N = distances.shape[1]

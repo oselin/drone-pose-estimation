@@ -9,8 +9,8 @@ main:
     environment: "test"
     data_folder: "data"
     max_iteration: 30      # 30
-    setting: "setting1"
-    noise_time_std: 0.0   # 0.03 
+    setting: "setting4"
+    noise_time_std: 0.2   # 0.03 
     run: "run1"           # overwritten if launched from bash multiple times
     timestep: 0.1
 
