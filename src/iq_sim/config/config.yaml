@@ -1,6 +1,6 @@
 hub:
   ros__parameters:
-    noise_dist_std: 0.05   # 0.02 # this is multiplied by the range
+    noise_dist_std: 0.0   # 0.02 # this is multiplied by the range
     timestep: 0.1
 
 main:
@@ -9,8 +9,8 @@ main:
     environment: "test"
     data_folder: "data"
     max_iteration: 30      # 30
-    setting: "setting2"
-    noise_time_std: 0.0   # 0.02 
+    setting: "setting1"
+    noise_time_std: 0.0   # 0.03 
     run: "run1"           # overwritten if launched from bash multiple times
     timestep: 0.1
 
@@ -20,7 +20,7 @@ test:
     timestep: 0.05
 
 #################################
-#     NOISE SETTINGS TESTED:    # 
+#     OLD NOISE SETTINGS TESTED:    # 
 #################################
 
 # setting1:
@@ -30,20 +30,53 @@ test:
 
 # setting2:
 # noise_dist_std: 0.05
-# noise_dyna_std: 0.0
 # noise_time_std: 0.0
+# noise_dyna_std: 0.0
 
 # setting3:
 # noise_dist_std: 0.0
-# noise_dyna_std: 0.01
 # noise_time_std: 0.0
+# noise_dyna_std: 0.01
 
 # setting4:
 # noise_dist_std: 0.0
+# noise_time_std: 0.03
 # noise_dyna_std: 0.0
-# noise_time_std: 0.02
 
 # setting5:
 # noise_dist_std: 0.05
+# noise_time_std: 0.03
 # noise_dyna_std: 0.01
-# noise_time_std: 0.02
+
+
+
+#################################
+#    NEW NOISE SETTINGS TESTED:    # 
+#################################
+
+# setting1:
+# noise_dist_std: 0.0
+# noise_time_std: 0.0
+# noise_dyna_std: 0.0
+
+# setting2:
+# noise_dist_std: 0.05
+# noise_time_std: 0.0
+# noise_dyna_std: 0.0
+
+
+# to relaunch
+# setting3:
+# noise_dist_std: 0.0
+# noise_time_std: 0.0
+# noise_dyna_std: 0.001
+
+# setting4:
+# noise_dist_std: 0.0
+# noise_time_std: 0.2
+# noise_dyna_std: 0.0
+
+# setting5:
+# noise_dist_std: 0.05
+# noise_time_std: 0.2
+# noise_dyna_std: 0.001

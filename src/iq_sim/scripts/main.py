@@ -21,7 +21,7 @@ PACKAGE_NAME = "iq_sim"
 CHECK_UPDATE_TIME = 5.0
 ANCHOR_MOV_TIME = 1.0  # 1 s
 
-SWARM_COEF = np.array([0.0, 0.0, 0.0])
+SWARM_COEF = np.array([0.0, 1.0, 0.0])
 ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
 
 SWARM_VEL = 0.2  # [m/s]
