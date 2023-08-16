@@ -133,9 +133,9 @@ class Main(Node):
 
         return X_mds, None, self.get_timestamp()-t_mds
 
-    def LS(self, DM, PMs_tmp):
+    def LSM(self, DM, PMs_tmp):
         """
-        Run LS algorithm defined in the Algorithms class, by assembling the
+        Run LSM algorithm defined in the Algorithms class, by assembling the
         disance matrices in one unique [n+3, n+3] matrix.
         Return:
             - Coordinates of the drones swarm estimated via the algorithm.
@@ -143,7 +143,7 @@ class Main(Node):
         t_ls = self.get_timestamp()
 
         # Run the algorithm
-        X_ls = Algorithms.LS(DM, PMs_tmp)
+        X_ls = Algorithms.LSM(DM, PMs_tmp)
 
         # TODO: delete??
         # The following covariance doesn't represent the uncertainty on the estimation.
@@ -196,7 +196,7 @@ class Main(Node):
 
             # Run algorithms
             X_mds, Cov_mds, time_mds = self.MDS(DM, PMs_tmp)
-            X_ls, Cov_ls, time_ls = self.LS(DM, PMs_tmp)
+            X_ls, Cov_ls, time_ls = self.LSM(DM, PMs_tmp)
             self.times[self.iter_counter] = np.array(
                 [self.timestamp, time_mds, time_ls])
 
@@ -204,9 +204,9 @@ class Main(Node):
             self.plot.update(
                 true_coords=self.coords,
                 MDS_coords=X_mds + self.offset.reshape(-1, 1),
-                LS_coords=X_ls + self.offset.reshape(-1, 1),
+                LSM_coords=X_ls + self.offset.reshape(-1, 1),
                 MDS_cov=Cov_mds,    # None now
-                LS_cov=Cov_ls       # None now
+                LSM_cov=Cov_ls       # None now
             )
 
             # Store the values for plotting
@@ -409,7 +409,7 @@ class Main(Node):
         self.plot = Plot(
             mode='2D',
             display_MDS=True,
-            display_LS=True,
+            display_LSM=True,
             reduction_method='xy',
             display_covariance=True,
         )
