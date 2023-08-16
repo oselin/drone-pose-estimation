@@ -19,7 +19,7 @@ from ament_index_python.packages import get_package_share_directory
 PACKAGE_NAME = "iq_sim"
 
 CHECK_UPDATE_TIME = 5.0
-ANCHOR_MOV_TIME = 1.0  # 1 s
+ANCHOR_MOV_TIME   = 1.0  # 1 s
 
 SWARM_COEF = np.array([0.0, 1.0, 0.0])
 ANCHOR_COEF = np.vstack([-np.eye(3), np.eye(3)])
@@ -49,14 +49,15 @@ class Main(Node):
                 self.X_mds_storage.shape[0], -1))
             file.close()
 
-        with open(os.path.join(folder_path, 'X_ls_storage.txt'), 'w') as file:
-            np.savetxt(file, self.X_ls_storage.reshape(
-                self.X_ls_storage.shape[0], -1))
+        with open(os.path.join(folder_path, 'X_lsm_storage.txt'), 'w') as file:
+            np.savetxt(file, self.X_lsm_storage.reshape(
+                self.X_lsm_storage.shape[0], -1))
             file.close()
 
         with open(os.path.join(folder_path, 'times.txt'), 'w') as file:
             np.savetxt(file, self.times)
             file.close()
+
 
     def pose_reader_callback(self, received_msg, index):
         """
@@ -69,14 +70,15 @@ class Main(Node):
             index) @ np.array([pos.x, pos.y, pos.z, 1]))[:3]
         # self.get_logger().info(f"drone{index}: {str(self.coords[:, index])}")
 
+
     def distance_reader_callback(self, received_msg, index):
         """
         Update the Distance Matrix (DM) buffer by replacing the i-th columnn.
         """
         self.DM_buffer[:, index] = np.array(received_msg.data)
 
-        if self.updating:
-            self.update_booleans[index] = True
+        if self.updating: self.update_booleans[index] = True
+
 
     def send_velocity(self, id, vel_x, vel_y, vel_z):
         # apply transformation to interact with Gazebo+Ardupilot
@@ -87,6 +89,7 @@ class Main(Node):
         self.navigation.send_setpoint_velocity(
             id, rel_vel[0], rel_vel[1], rel_vel[2], 0.0
         )
+
 
     def initialize_swarm(self):
         """
@@ -106,6 +109,7 @@ class Main(Node):
 
         # set the z-coordinates of the anchor to "altitude", according to the takeoff
         self.PMs[2, 0] = self.altitude
+
 
     def MDS(self, DM, PMs_tmp):
         """
@@ -133,6 +137,7 @@ class Main(Node):
 
         return X_mds, None, self.get_timestamp()-t_mds
 
+
     def LSM(self, DM, PMs_tmp):
         """
         Run LSM algorithm defined in the Algorithms class, by assembling the
@@ -140,10 +145,10 @@ class Main(Node):
         Return:
             - Coordinates of the drones swarm estimated via the algorithm.
         """
-        t_ls = self.get_timestamp()
+        t_lsm = self.get_timestamp()
 
         # Run the algorithm
-        X_ls = Algorithms.LSM(DM, PMs_tmp)
+        X_lsm = Algorithms.LSM(DM, PMs_tmp)
 
         # TODO: delete??
         # The following covariance doesn't represent the uncertainty on the estimation.
@@ -157,7 +162,8 @@ class Main(Node):
         # # #         Cov_ls[:, i] = np.cov(
         # # #             self.X_ls_storage[:self.iter_counter+1, :, i], rowvar=False).flatten()
 
-        return X_ls, None, self.get_timestamp()-t_ls
+        return X_lsm, None, self.get_timestamp()-t_lsm
+
 
     def update(self):
         """
@@ -196,45 +202,50 @@ class Main(Node):
 
             # Run algorithms
             X_mds, Cov_mds, time_mds = self.MDS(DM, PMs_tmp)
-            X_ls, Cov_ls, time_ls = self.LSM(DM, PMs_tmp)
+            X_lsm, Cov_lsm, time_lsm = self.LSM(DM, PMs_tmp)
             self.times[self.iter_counter] = np.array(
-                [self.timestamp, time_mds, time_ls])
+                [self.timestamp, time_mds, time_lsm])
 
             # Update the plot
             self.plot.update(
                 true_coords=self.coords,
                 MDS_coords=X_mds + self.offset.reshape(-1, 1),
-                LSM_coords=X_ls + self.offset.reshape(-1, 1),
+                LSM_coords=X_lsm + self.offset.reshape(-1, 1),
                 MDS_cov=Cov_mds,    # None now
-                LSM_cov=Cov_ls       # None now
+                LSM_cov=Cov_lsm     # None now
             )
 
             # Store the values for plotting
             self.X_storage[self.iter_counter] = self.coords - \
                 self.offset.reshape(3, -1)
             self.X_mds_storage[self.iter_counter] = X_mds
-            self.X_ls_storage[self.iter_counter] = X_ls
+            self.X_lsm_storage[self.iter_counter] = X_lsm
 
             self.iter_counter += 1
 
         # Reset the booleans
         self.update_booleans[:] = False
 
-        # Update cycle management #
-        time_noise = Algorithms.noise(0, self.noise_time_std, shape=1)
+        # Update cycle management 
+        time_noise    = Algorithms.noise(0, self.noise_time_std, shape=1)
         self.mov_time = ANCHOR_MOV_TIME + time_noise
-        self.meas_index = (self.meas_index + 1) % self.n_meas
+
+        self.meas_index  = (self.meas_index + 1) % self.n_meas
         self.phase_index = (self.phase_index + 1) % len(ANCHOR_COEF)
+
         self.timestamp = self.get_timestamp()
+
 
     def check_update(self):
         """
-        Check whether the distances vectors for all the drones have been received. In case, update the estimation and move the anchor.
+        Check whether the distances vectors for all the drones have been received. 
+        In case, update the estimation and move the anchor.
         """
         if np.all(self.update_booleans):
             self.check_update_timer.cancel()
             self.update()
             self.updating = False
+
 
     def move_swarm(self, anchor):
         """
@@ -249,6 +260,7 @@ class Main(Node):
             if id != self.anchor_id or anchor:
                 self.send_velocity(id, vel_x, vel_y, vel_z)
 
+
     def move_anchor(self):
         """
         Move the anchor dron by sending velcity values.
@@ -260,6 +272,7 @@ class Main(Node):
 
         # Send velocity value
         self.send_velocity(self.anchor_id, vel_x, vel_y, vel_z)
+
 
     def cycle_callback(self):
         """
@@ -301,6 +314,7 @@ class Main(Node):
 
         self.timer = self.create_timer(self.timestep, self.cycle_callback)
         self.start_timer.cancel()
+
 
     def __init__(self):
 
@@ -374,13 +388,12 @@ class Main(Node):
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
         self.X_storage = np.zeros((self.max_iteration, 3, self.n_drones))
         self.X_mds_storage = np.zeros((self.max_iteration, 3, self.n_drones))
-        self.X_ls_storage = np.zeros((self.max_iteration, 3, self.n_drones))
+        self.X_lsm_storage = np.zeros((self.max_iteration, 3, self.n_drones))
         self.times = np.zeros((self.max_iteration, 3))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(
-                f"Read from {DISTANCE_TOPIC_TEMPLATE(i+1)}")
+            self.get_logger().info(f"Read from {DISTANCE_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 Float32MultiArray,
                 DISTANCE_TOPIC_TEMPLATE(i+1),
@@ -390,8 +403,7 @@ class Main(Node):
 
         # Subscribe to POSE_TOPIC_TEMPLATE topic for each drone
         for i in range(self.n_drones):
-            self.get_logger().info(
-                f"Read from {POSE_TOPIC_TEMPLATE(i+1)}")
+            self.get_logger().info(f"Read from {POSE_TOPIC_TEMPLATE(i+1)}")
             self.create_subscription(
                 PoseStamped,
                 POSE_TOPIC_TEMPLATE(i+1),
@@ -402,8 +414,7 @@ class Main(Node):
         # Initialize Navigation object
         self.navigation = Navigation(node=self, n_drones=self.n_drones, timeout=10
                                      )
-        if (self.environment == "gazebo"):
-            self.initialize_swarm()
+        if (self.environment == "gazebo"): self.initialize_swarm()
 
         # Plotting
         self.plot = Plot(
