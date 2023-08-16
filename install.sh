@@ -26,28 +26,41 @@ sudo apt upgrade -y
 pip install catkin-pkg==0.3.0 defusedxml
 # Install ROS2
 sudo apt install ros-humble-desktop
+sudo apt install ros-humble-mavros
+sudo apt install ros-humble-mavros-extras
 
 # Sourcing the setup script
 # Replace ".bash" with your shell if you're not using bash
 # Possible values are: setup.bash, setup.sh, setup.zsh
 echo 'source /opt/ros/humble/setup.bash ' >> ~/.bashrc 
-
-echo 'source $HOME/drone-pose-estimation/install/local_setup.bash' >> ~/.bashrc 
-# source $HOME/Desktop/ardupilot/Tools/completion/completion.bash
+echo 'source ~/ros2_humble_ws/install/setup.bash' >> ~/.bashrc 
+echo 'source ~/ros2_humble_ws/install/local_setup.bash' >> ~/.bashrc 
 
 echo 'source /usr/share/gazebo/setup.sh' >> ~/.bashrc 
 
+# Create workspace
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws
 
-echo 'alias launch_multi="ros2 launch iq_sim multi_drone.launch.py"' >> ~/.bashrc 
+# Resolve dependencies
+rosdep install -i --from-path src --rosdistro humble -y
+
+colcon build
+
+# echo 'alias launch_multi="ros2 launch iq_sim multi_drone.launch.py"' >> ~/.bashrc 
 echo 'source /home/$USER/ardupilot/Tools/completion/completion.bash' >> ~/.bashrc 
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 
+# Install ArduPilot
 cd ~
 sudo apt install git
-git clone --recursive https://github.com/ArduPilot/ardupilot.git
+git clone https://github.com/ArduPilot/ardupilot.git
 cd ardupilot
 
-cd ardupilot
+# Downgrade to version 4.3.0 (working)
+git checkout ArduCopter-4.3.0
+git submodule update --recursive
+
 Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Install Gazebo
@@ -66,11 +79,9 @@ cmake ..
 make -j4
 sudo make install
 
-echo 'export GAZEBO_MODEL_PATH=$HOME/drone-pose-estimation/src/iq_sim/models:$HOME/ardupilot_gazebo/models:$GAZEBO_MODEL_PATH' >> ~/.bashrc 
-. ~/.bashrc
+# echo 'export GAZEBO_MODEL_PATH=$HOME/drone-pose-estimation/src/iq_sim/models:$HOME/ardupilot_gazebo/models:$GAZEBO_MODEL_PATH' >> ~/.bashrc 
+# . ~/.bashrc
 
-sudo apt install ros-humble-mavros
-sudo apt install ros-humble-mavros-extras
 
 wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 chmod a+x install_geographiclib_datasets.sh
