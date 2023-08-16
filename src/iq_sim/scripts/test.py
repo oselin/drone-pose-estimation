@@ -84,8 +84,6 @@ class Test(Node):
         self.n_drones = self.get_parameter(
             'n_drones').get_parameter_value().integer_value
 
-
-        # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('noise_dyna_std', rclpy.Parameter.Type.DOUBLE)
         self.noise_dyna_std = self.get_parameter(
             'noise_dyna_std').get_parameter_value().double_value
@@ -94,6 +92,12 @@ class Test(Node):
         self.timestep = self.get_parameter(
             'timestep').get_parameter_value().double_value
 
+        self.declare_parameter('seed', rclpy.Parameter.Type.INTEGER)
+        self.seed = self.get_parameter(
+            'seed').get_parameter_value().integer_value
+
+        np.random.seed(self.seed)
+        
         # Class attributes, initialized for allocating memory
         # states = [[x, y, z, vel_x, vel_y, vel_z]^T, ...]
         self.states = np.zeros((6, self.n_drones))

@@ -31,17 +31,17 @@ for ((i = 0; i < $N; i++)); do
     idx=$((i + 1))
     echo "Launching test [$idx/$N]"
 
-    gnome-terminal --tab -- bash -c "ros2 run iq_sim test.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 "
+    gnome-terminal --tab -- bash -c "ros2 run iq_sim test.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 -p seed:=$idx"
     echo '  test.py launched!'
     sleep 5
 
     # Launch ROS2 node to calculate the distances from the drones' coordinates
-    gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 "
+    gnome-terminal --tab -- bash -c "ros2 run iq_sim hub.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 -p seed:=$idx"
     echo '  hub launched!'
     sleep 5 
 
     # Launch the script main.py for running MDS, plotting the results and guiding the drones
-    gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 -p run:='run$idx' " 
+    gnome-terminal --tab -- bash -c "ros2 run iq_sim main.py --ros-args --params-file install/iq_sim/share/iq_sim/config/config.yaml -p n_drones:=$1 -p run:='run$idx' -p seed:=$idx" 
     main_pid=$!
     echo '  main.py launched!'
 

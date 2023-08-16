@@ -323,51 +323,48 @@ class Main(Node):
         super().__init__('main')
         print("Node that reads the distances, computes the coordinates, plots the results and guides the drones.")
 
-        # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('altitude', rclpy.Parameter.Type.DOUBLE)
         self.altitude = self.get_parameter(
             'altitude').get_parameter_value().double_value
 
         # Parameters from ROS2 command line
-        # rclpy.Parameter.Type.STRING
         self.declare_parameter('environment', rclpy.Parameter.Type.STRING)
         self.environment = self.get_parameter(
             'environment').get_parameter_value().string_value
 
-        # rclpy.Parameter.Type.STRING
         self.declare_parameter('data_folder', rclpy.Parameter.Type.STRING)
         self.data_folder = self.get_parameter(
             'data_folder').get_parameter_value().string_value
 
-        # rclpy.Parameter.Type.INTEGER
         self.declare_parameter('max_iteration', rclpy.Parameter.Type.INTEGER)
         self.max_iteration = self.get_parameter(
             'max_iteration').get_parameter_value().integer_value
 
-        # rclpy.Parameter.Type.INTEGER
         self.declare_parameter('n_drones', rclpy.Parameter.Type.INTEGER)
         self.n_drones = self.get_parameter(
             'n_drones').get_parameter_value().integer_value
 
-        # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('noise_time_std', rclpy.Parameter.Type.DOUBLE)
         self.noise_time_std = self.get_parameter(
             'noise_time_std').get_parameter_value().double_value
 
-        # rclpy.Parameter.Type.STRING
         self.declare_parameter('run', rclpy.Parameter.Type.STRING)
         self.run = self.get_parameter(
             'run').get_parameter_value().string_value
 
-        # rclpy.Parameter.Type.STRING
         self.declare_parameter('setting', rclpy.Parameter.Type.STRING)
         self.setting = self.get_parameter(
             'setting').get_parameter_value().string_value
 
-        # rclpy.Parameter.Type.DOUBLE
         self.declare_parameter('timestep', rclpy.Parameter.Type.DOUBLE)
         self.timestep = self.get_parameter(
             'timestep').get_parameter_value().double_value
+
+        self.declare_parameter('seed', rclpy.Parameter.Type.INTEGER)
+        self.seed = self.get_parameter(
+            'seed').get_parameter_value().integer_value
+
+        np.random.seed(self.seed)
 
         # Attributes initialization
         # management
@@ -383,12 +380,15 @@ class Main(Node):
         # measurements and storage
         self.coords = np.zeros((3, self.n_drones))
         self.offset = np.zeros((3,))
-        self.PMs = np.zeros((3, self.n_meas))
-        self.DMs = np.zeros((self.n_meas, self.n_drones, self.n_drones))
+
+        self.PMs       = np.zeros((3, self.n_meas))
+        self.DMs       = np.zeros((self.n_meas, self.n_drones, self.n_drones))
         self.DM_buffer = np.zeros((self.n_drones, self.n_drones))
-        self.X_storage = np.zeros((self.max_iteration, 3, self.n_drones))
+
+        self.X_storage     = np.zeros((self.max_iteration, 3, self.n_drones))
         self.X_mds_storage = np.zeros((self.max_iteration, 3, self.n_drones))
         self.X_lsm_storage = np.zeros((self.max_iteration, 3, self.n_drones))
+
         self.times = np.zeros((self.max_iteration, 3))
 
         # Subscribe to DISTANCE_TOPIC_TEMPLATE topic for each drone

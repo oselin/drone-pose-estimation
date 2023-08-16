@@ -65,6 +65,12 @@ class Hub(Node):
         self.timestep = self.get_parameter(
             'timestep').get_parameter_value().double_value
         
+        self.declare_parameter('seed', rclpy.Parameter.Type.INTEGER)
+        self.seed = self.get_parameter(
+            'seed').get_parameter_value().integer_value
+
+        np.random.seed(self.seed)
+        
         # Pre-allocation of memory
         self.distances = np.zeros((self.n_drones, self.n_drones))         
         self.coords = np.zeros((3, self.n_drones))   
