@@ -12,8 +12,6 @@ if ! [[ $1 =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-SCRIPT=$(realpath -s "$0")
-SCRIPTPATH=$(dirname "$SCRIPT")
 
 # Clean Gazebo
 pkill gz
@@ -23,25 +21,25 @@ pkill arducopter
 
 # Generate the correct world
 echo
-python3 $SCRIPTPATH/Setup/generate_world.py $1
+python3 ~/ros2_ws/src/drone_pose_estimation/scripts/Setup/generate_world.py $1
 
 # Generate the correct .parm files
 echo
-python3 $SCRIPTPATH/Setup/generate_gazebo_parms.py $1
+python3 ~/ros2_ws/src/drone_pose_estimation/scripts/Setup/generate_gazebo_parms.py $1
 
 # Generate the correct models
 echo
-python3 $SCRIPTPATH/Setup/generate_models.py $1
+python3 ~/ros2_ws/src/drone_pose_estimation/scripts/Setup/generate_models.py $1
 
 # Update the Ardupilot vehicleinfo.py
 echo
 echo "Updating vehicleinfo.py details..."
-python3 $SCRIPTPATH/Setup/generate_vehicleinfo.py $1
+python3 ~/ros2_ws/src/drone_pose_estimation/scripts/Setup/generate_vehicleinfo.py $1
 
 # Go back to ws folder
 echo 
 echo 'Building the project with the new files...'
-cd $SCRIPTPATH/../../..
+cd ~/ros2_ws
 colcon build
 
 # Launch populated world
@@ -70,11 +68,11 @@ sleep $((60 * $1))
 # Launch ROS2 node to calculate the distances from the drones' coordinates
 echo
 echo 'Launching the hub...'
-gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation hub.py --ros-args -p n_drones:=$1 --params-file /src/drone_pose_estimation/config/config.yaml sleep $((60 * $1)) " # -p noise:='none' "
+gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation hub.py --ros-args -p n_drones:=$1 --params-file ~/ros2_ws/src/drone_pose_estimation/config/config.yaml sleep $((60 * $1)) " # -p noise:='none' "
 echo 'hub launched!'
 
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
 echo
 echo 'Launching main.py...'
-gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation main.py --ros-args -p n_drones:=$1 --params-file /src/drone_pose_estimation/config/config.yaml" # -p altitude:=5.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
+gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation main.py --ros-args -p n_drones:=$1 --params-file ~/ros2_ws/src/drone_pose_estimation/config/config.yaml" # -p altitude:=5.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
 echo 'main.py launched!'

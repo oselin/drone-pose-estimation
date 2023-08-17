@@ -13,12 +13,13 @@ if ! [[ $1 =~ ^[0-9]+$ ]]; then
 fi
 
 SCRIPT=$(realpath -s "$0")
-SCRIPTPATH=$(dirname "$SCRIPT")
-
+#SCRIPTPATH=$(dirname "$SCRIPT")
+SCRIPTPATH='~/ros2_ws'
 # Compile nodes
 echo 
 echo 'Building the project with the new files...'
-cd $SCRIPTPATH/../../..
+#cd $SCRIPTPATH/../../..
+cd $SCRIPTPATH
 colcon build
 
 echo
@@ -36,12 +37,12 @@ for ((i = 0; i < $N; i++)); do
     sleep 5
 
     # Launch ROS2 node to calculate the distances from the drones' coordinates
-    gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation hub.py --ros-args --params-file install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml -p n_drones:=$1 -p seed:=$idx"
+    gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation hub.py --ros-args --params-file ~/ros2_ws/install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml -p n_drones:=$1 -p seed:=$idx"
     echo '  hub launched!'
     sleep 5 
 
     # Launch the script main.py for running MDS, plotting the results and guiding the drones
-    gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation main.py --ros-args --params-file install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml -p n_drones:=$1 -p run:='run$idx' -p seed:=$idx" 
+    gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation main.py --ros-args --params-file ~/ros2_ws/install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml -p n_drones:=$1 -p run:='run$idx' -p seed:=$idx" 
     main_pid=$!
     echo '  main.py launched!'
 
