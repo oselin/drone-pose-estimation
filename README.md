@@ -17,20 +17,20 @@ Authors:
 ## Build and run
 In order to install the software and make it work, few steps are needed.
 
-In this repository, the script `install.sh` helps the user to install all the requirements needed to run the package
-
-
-To compile the project, please follow these bash commands
-
-Move into dev folder
+1) If ROS2 Humble is not installed, please install it by running
 ~~~bash
-cd dev_ws
+cd path/to/this/repository
+chmod +x install_ros2_humble.sh
+./install_ros2_humble.sh
 ~~~
 
-Copy this repository as ROS2 package
+2) Install all the tools and requirements needed for running the project, by running
 ~~~bash
-cp -r path-to-this-repo ~/ros2_humble/src
+cd path/to/this/repository
+chmod +x install_tools.sh
+./install_tools.sh
 ~~~
+
 
 To run the simulation using Gazebo, please run
 ~~~bash
