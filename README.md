@@ -20,15 +20,15 @@ In order to install the software and make it work, few steps are needed.
 1) If ROS2 Humble is not installed, please install it by running
 ~~~bash
 cd path/to/this/repository
-chmod +x install_ros2_humble.sh
-./install_ros2_humble.sh
+chmod +x install/install_ros2_humble.sh
+./install/install_ros2_humble.sh
 ~~~
 
 2) Install all the tools and requirements needed for running the project, by running
 ~~~bash
 cd path/to/this/repository
-chmod +x install_tools.sh
-./install_tools.sh
+chmod +x install/install_tools.sh
+./install/install_tools.sh
 ~~~
 
 ## Run the project
