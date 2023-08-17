@@ -35,20 +35,24 @@ chmod +x install/install_tools.sh
 
 To run the simulation using Gazebo, please run
 ~~~bash
-cd path/to/this/repository/launch/launch_gazebo TYPE_NUMBER_OF_DESIRED_DRONES
+cd path/to/this/repository/
+./launch/launch_gazebo TYPE_NUMBER_OF_DESIRED_DRONES
 ~~~
 
 An example can be
 ~~~bash
-cd path/to/this/repository/launch/launch_gazebo 3
+cd path/to/this/repository/
+./launch/launch_gazebo 3
 ~~~
 
 To run the simulation using the dynamic (numerical) model, please run
 ~~~bash
-cd path/to/this/repository/launch/launch_test TYPE_NUMBER_OF_DESIRED_DRONES
+cd path/to/this/repository/
+./launch/launch_test TYPE_NUMBER_OF_DESIRED_DRONES
 ~~~
 
 An example can be
 ~~~bash
-cd path/to/this/repository/launch/launch_test 20
+cd path/to/this/repository/
+./launch/launch_test 20
 ~~~
