@@ -1,6 +1,6 @@
 hub:
   ros__parameters:
-    noise_dist_std: 0.0   # 0.02 # this is multiplied by the range
+    noise_dist_std: 0.05   # 0.02 # this is multiplied by the range
     timestep: 0.1
 
 main:
@@ -9,14 +9,14 @@ main:
     environment: "test"
     data_folder: "data"
     max_iteration: 30      # 30
-    setting: "setting1"
-    noise_time_std: 0.0   # 0.03 
+    setting: "setting5"
+    noise_time_std: 0.1   # 0.03 
     run: "run1"           # overwritten if launched from bash multiple times
     timestep: 0.1
 
 test:
   ros__parameters:
-    noise_dyna_std: 0.0   # 0.01 
+    noise_dyna_std: 0.001   # 0.01 
     timestep: 0.05
 
 #################################
