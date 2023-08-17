@@ -14,7 +14,7 @@ Authors:
 @[riccardoperiotto](https://github.com/riccardoperiotto),
 
 
-## Build and run
+## Build and install the project
 In order to install the software and make it work, few steps are needed.
 
 1) If ROS2 Humble is not installed, please install it by running
@@ -31,23 +31,24 @@ chmod +x install_tools.sh
 ./install_tools.sh
 ~~~
 
+## Run the project
 
 To run the simulation using Gazebo, please run
 ~~~bash
-cd ~/ros2_humble/src/iq_sim/scripts/launch_gazebo TYPE_NUMBER_OF_DESIRED_DRONES
+cd path/to/this/repository/launch/launch_gazebo TYPE_NUMBER_OF_DESIRED_DRONES
 ~~~
 
 An example can be
 ~~~bash
-cd ~/ros2_humble/src/iq_sim/scripts/launch_gazebo 3
+cd path/to/this/repository/launch/launch_gazebo 3
 ~~~
 
 To run the simulation using the dynamic (numerical) model, please run
 ~~~bash
-cd ~/ros2_humble/src/iq_sim/scripts/launch_test TYPE_NUMBER_OF_DESIRED_DRONES
+cd path/to/this/repository/launch/launch_test TYPE_NUMBER_OF_DESIRED_DRONES
 ~~~
 
 An example can be
 ~~~bash
-cd ~/ros2_humble/src/iq_sim/scripts/launch_test 20
+cd path/to/this/repository/launch/launch_test 20
 ~~~
