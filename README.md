@@ -1,4 +1,4 @@
-# Infrastructure-free Multidimensional Scaling (MDS) algorithm for drones swarm localization
+# Infrastructure-free Multidimensional Scaling (MDS) for drones swarm localization
 
 The project aims to estimate the location of a fleet of drones via Multi-Dimensional Scaling (MDS) algorithm.
 
