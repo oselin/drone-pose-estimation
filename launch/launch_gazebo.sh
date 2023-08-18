@@ -41,6 +41,7 @@ echo
 echo 'Building the project with the new files...'
 cd ~/ros2_ws
 colcon build
+source ~/.bashrc
 
 # Launch populated world
 echo
