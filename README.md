@@ -14,6 +14,7 @@ Authors:
 <p align="center" display="inblock">
 <img src="./images/MDS_visualization.png" alt="MDS visualization" width="40%"> <img src="./images/trilateration.png" alt="Trilateration visualization" width="40%">
 </p>
+
 ## Structure of the software
 After a first initialization, the measurement procedure starts and the motion of the anchor follows. Since both the algorithms require at least 4 measurements, an initial loop verifies that 4 measurements are taken before launching the algorithm.
 
