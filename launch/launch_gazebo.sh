@@ -69,11 +69,12 @@ sleep $((60 * $1))
 # Launch ROS2 node to calculate the distances from the drones' coordinates
 echo
 echo 'Launching the hub...'
-gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation hub.py --ros-args -p n_drones:=$1 --params-file ~/ros2_ws/src/drone_pose_estimation/config/config.yaml sleep $((60 * $1)) " # -p noise:='none' "
+gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation hub.py --ros-args -p n_drones:=$1 -p seed:=$1 --params-file ~/ros2_ws/install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml" 
+sleep $((60 * $1)) # -p noise:='none'
 echo 'hub launched!'
 
 # Launch the script main.py for running MDS, plotting the results and guiding the drones
 echo
 echo 'Launching main.py...'
-gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation main.py --ros-args -p n_drones:=$1 --params-file ~/ros2_ws/src/drone_pose_estimation/config/config.yaml" # -p altitude:=5.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
+gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation main.py --ros-args -p n_drones:=$1 -p seed:=$1 --params-file ~/ros2_ws/install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml" # -p altitude:=5.0 -p noise_dist_std:=0.0 -p noise_time_std:=0.0"
 echo 'main.py launched!'
