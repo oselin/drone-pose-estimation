@@ -414,16 +414,28 @@ class Main(Node):
         # Initialize Navigation object
         self.navigation = Navigation(node=self, n_drones=self.n_drones, timeout=10
                                      )
-        if (self.environment == "gazebo"): self.initialize_swarm()
+        if (self.environment == "gazebo"): 
+            print("Initializing takeoff procedure...")
+            self.initialize_swarm()
 
-        # Plotting
-        self.plot = Plot(
-            mode='2D',
-            display_MDS=True,
-            display_LSM=True,
-            reduction_method='xy',
-            display_covariance=True,
-        )
+            # Plotting
+            self.plot = Plot(   # do not display plot -> it slows down the performances
+                mode='2D',
+                display_MDS=False,
+                display_LSM=False,
+                reduction_method='xy',
+                display_covariance=False,
+            )
+        else:
+            # Plotting
+            self.plot = Plot(
+                mode='2D',
+                display_MDS=True,
+                display_LSM=True,
+                reduction_method='xy',
+                display_covariance=True,
+            )
+
         self.plot.start()
 
         # Time management
