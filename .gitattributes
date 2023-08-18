@@ -1,1 +1,3 @@
 *.ipynb linguist-vendored
+*.pdf linguist-vendored
+*.png linguist-vendored

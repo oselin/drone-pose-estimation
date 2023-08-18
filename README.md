@@ -11,7 +11,20 @@ This research was conducted along with the course **Design Methods for Unmanned 
 Authors:
 @[muttigiacomo](https://github.com/muttigiacomo)
 @[oselin](https://github.com/oselin),
-@[riccardoperiotto](https://github.com/riccardoperiotto),
+@[riccardoperiotto](https://github.com/riccardoperiotto)
+
+
+## Structure of the software
+<p align="center">
+    <img src="./images/flowchart_color.pdf"/>
+</p>
+
+## Numerical simulation
+<p align="center">
+    <img src="./images/nodes_architecture.pdf"/>
+</p>
+
+## Gazebo simulation
 
 
 ## Build and install the project
