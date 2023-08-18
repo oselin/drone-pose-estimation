@@ -12,14 +12,11 @@ if ! [[ $1 =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-SCRIPT=$(realpath -s "$0")
-#SCRIPTPATH=$(dirname "$SCRIPT")
-SCRIPTPATH='~/ros2_ws'
+
 # Compile nodes
 echo 
 echo 'Building the project with the new files...'
-#cd $SCRIPTPATH/../../..
-cd $SCRIPTPATH
+cd ~/ros2_ws
 colcon build
 
 echo
@@ -32,7 +29,7 @@ for ((i = 0; i < $N; i++)); do
     idx=$((i + 1))
     echo "Launching test [$idx/$N]"
 
-    gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation test.py --ros-args --params-file install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml -p n_drones:=$1 -p seed:=$idx"
+    gnome-terminal --tab -- bash -c "ros2 run drone_pose_estimation test.py --ros-args --params-file ~/ros2_ws/install/drone_pose_estimation/share/drone_pose_estimation/config/config.yaml -p n_drones:=$1 -p seed:=$idx"
     echo '  test.py launched!'
     sleep 5
 
