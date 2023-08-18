@@ -16,12 +16,12 @@ Authors:
 
 ## Structure of the software
 <p align="center">
-    <img src="./images/flowchart_color.pdf"/>
+    <img src="./images/flowchart_color.png"/>
 </p>
 
 ## Numerical simulation
 <p align="center">
-    <img src="./images/nodes_architecture.pdf"/>
+    <img src="./images/nodes_architecture.png"/>
 </p>
 
 ## Gazebo simulation
