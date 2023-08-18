@@ -21,7 +21,7 @@ Authors:
 
 ## Numerical simulation
 <p align="center">
-    <img src="./images/nodes_architecture.png"/>
+    <img src="./images/nodes_architecture_color.png"/>
 </p>
 
 ## Gazebo simulation
