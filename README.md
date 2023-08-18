@@ -4,9 +4,7 @@ The project aims to estimate the location of a fleet of drones via Multi-Dimensi
 
 The performances are compared with standard trilateration algorithm, solved via numerical approach (Least Square Minimization - LSM)
 
-The project has been developed as ROS2 package (Distribution: Humble), mainly developed in Python3.
-
-This research was conducted along with the course **Design Methods for Unmanned Vehicles**
+The project has been developed as ROS2 package (distribution: Humble), mainly developed in Python3.
 
 Authors:
 @[muttigiacomo](https://github.com/muttigiacomo)
