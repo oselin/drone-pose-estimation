@@ -11,6 +11,8 @@ Authors:
 @[oselin](https://github.com/oselin),
 @[riccardoperiotto](https://github.com/riccardoperiotto)
 
+The theoretical explanation and analysis can be found in [report](./report.pdf)
+
 <p align="center" display="inblock">
 <img src="./images/MDS_visualization.png" alt="MDS visualization" width="40%"> <img src="./images/trilateration.png" alt="Trilateration visualization" width="40%">
 </p>
