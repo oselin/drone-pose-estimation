@@ -1,0 +1,8 @@
+\section{Conclusion}\label{sec:conclusion_section}
+This paper illustrated the implementation of the Multidimensional Scaling algorithm and the performances that can be obtained when it is used for estimating the location of a swarm of drones. Particularly, two different simulations were assessed to demonstrate its potential: a numerical one to collect data and to compute the average behaviour and the associated error, and a Software-in-the-loop one to demonstrate potential real-world applications. \par
+
+The performance metrics were compared to a more classical but less robust algorithms known in the literature as trilateration. It has demonstrated that MDS always outperformed trilateration in all the different studied scenarios, in which different Gaussian-distributed noise was added to dynamics, measurement or clock-time. \par
+
+The method studied in this work introduces for the first time the estimation of a swarm of fully-connected drones via infrastructure-free measurements, in which one node, designated as anchor, is responsible to move around and collect different measurements to make the algorithm run. \par
+
+Future improvements and further studies can be conducted, such as the introduction of an extended-MDS or the integration of its covariance estimation to better update a Kalmann filter.

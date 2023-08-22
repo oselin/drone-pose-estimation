@@ -1,0 +1,73 @@
+\section{Introduction}\label{sec:introduction_section}
+
+\IEEEPARstart{D}{rones} have witnessed escalating utilization across diverse sectors, revolutionizing industries with their aerial capabilities. From aerial photography, surveillance, search and rescue to agriculture, infrastructure inspection, and delivery services, drones are reshaping operational paradigms. Their ability to navigate challenging environments, gather real-time data and efficiently execute tasks has led to their integration in sectors such as filmmaking, disaster response, precision farming, and scientific research. As technological advancements continue, drones' versatile applications are expected to further expand, driving innovation and transforming industries on a global scale.
+\par
+
+Regardless of the application, the ability to determine the exact location of a drone is critical to achieving operational goals.
+For example, precise localization boosts safe navigation, optimal data collection, and effective communication. More generally, it is possible to claim that it increases the chances of successful drone adoption.
+Drones are typically localized using Global Positioning Systems (GPS), such as Global Navigation Satellite System (GNSS), which rely on satellites' signals to determine their position. In addition, sensors such as accelerometers, gyroscopes, and barometers aid navigation and stabilization. 
+However, this global reference is not always available, especially as the range of applications stretches to remote and hardly reachable locations: indoor settings, urban canyons, and dense vegetation.
+This poses a challenge to which the answer is still a topic of research.
+\par
+
+\subsection{Possible solutions}
+In these circumstances, some techniques like visual odometry and SLAM (Simultaneous Localization and Mapping) are employed for computing the drone position and attitude. These methods enable drones to navigate autonomously, avoid obstacles, and execute tasks with precision.
+An alternative approach, more suitable for a swarm of drones, is represented by Ultra-Wideband (UWB) signals. UWB technology operates by transmitting short-duration pulses with extremely low power across a wide frequency spectrum. UWB signals experience minimal interference and exhibit high immunity to multipath effects, making them ideal for precise distance measurement. This enables UWB-equipped drones to establish relative distances between themselves. 
+\par
+
+This set of relative distances represents a snapshot of the swarm configuration and can be used to compute the relative layout through various algorithms. 
+Among these, trilateration plays the role of the most straightforward one. This method derives the position of the nodes considering their distances from 3 known points in the 2D case and 4 points in the 3D one (see Section~\ref{sec:theory_section} for more details). 
+The problem can be solved with different techniques depending on the settings. If the measurements are not disturbed, the problem becomes an algebraic system of equations. On the other hand, if data are corrupted, Least-Square Minimization (LSM) can be used.
+Although valuable, a shortcoming of the trilateration approach is that it only uses the distances between the nodes and the anchors, not taking advantage of the information contained in the distance measurements between non-anchor nodes.
+\par
+
+The Multidimensional Scaling (MDS) algorithm is a favored approach for leveraging UWB measurements in wireless network localization. MDS is a widely employed method for dimensionality reduction, which objective is to transforms multidimensional data into a lower-dimensional space while retaining essential information. While various dimensionality reduction techniques like PCA, factor analysis, and isomap exist, MDS stands out due to its user-friendly nature and versatile applicability.
+\par
+
+\subsection{Contribution}
+The objective of this paper is to compare the performance of the two mentioned localization algorithms, namely trilateration through LSM and MDS, within a ROS 2\footnote{Robot Operating System v2} project. Through testing scripts that utilize these algorithms, the superior qualities of MDS become evident when contrasted with trilateration. MDS demonstrates robustness and precision, particularly in scenarios characterized by noise and measurement errors. 
+The project's code can be found at the repository below \footnote{https://github.com/oselin/drone-pose-estimation}.
+
+%%%
+
+The rest of the paper is organized as follows. Section~\ref{sec:related_work} delves into the related work, presenting the currently employed Local Positioning System (LPS) techniques.\par
+
+Subsequently, Section~\ref{sec:theory_section} provides a comprehensive elucidation of the mathematical principles behind both algorithms.
+In Section~\ref{sec:methodology_section}, the project's structure is described, with an explanation about the algorithms execution, how it has been developed the simulation suites and the experiments that has been conducted.\par
+
+Finally, results and conclusion collect the outcomes of the study and present a summary of what was done, mentioning some possible future directions.
+
+
+
+
+
+%%%%%%%%% BELOW THE PREVIOUS VERSION 17/08/2023 h. 10:52
+%%% \IEEEPARstart{D}{rones} have witnessed escalating utilization across diverse sectors, revolutionizing industries with their aerial capabilities. From aerial photography, surveillance, search and rescue to agriculture, infrastructure inspection, and delivery services, drones are reshaping operational paradigms. Their ability to navigate challenging environments, gather real-time data, and efficiently execute tasks has led to their integration in sectors such as filmmaking, disaster response, precision farming, and scientific research. As technological advancements continue, drones' versatile applications are anticipated to further expand, driving innovation and transforming industries on a global scale.
+%%% \par
+%%% The success of drone applications hinges on precise localization. It ensures safe navigation, optimal data collection, and effective communication. Despite the application, the ability to determine a drone's exact position is pivotal for achieving operational goals.
+%%% Drones are typically localized using Global Positioning Systems (GPS), such as Global Navigation Satellite System (GNSS), which rely on signals from satellites to determine their position. Additionally, sensors like accelerometers, gyroscopes, and barometers aid in navigation and stabilization. However, this global reference is not always available, especially as the range of applications stretches in remote and hardly reachable locations: indoor settings, urban canyons, and dense vegetation.
+%%% This poses a challenge to which the answer is still a topic of research.\par
+%%% 
+%%% 
+%%% \subsection{Possible solutions}
+%%% In these circumstances, some techniques like visual odometry and SLAM (Simultaneous Localization and Mapping) are employed for computing the drone position and attitude. These methods enable drones to navigate autonomously, avoid obstacles, and execute tasks with precision.
+%%% An alternative approach, more suitable for a fleet of drones, is represented by Ultra-Wideband (UWB) signals. UWB technology operates by transmitting short-duration pulses with extremely low power across a wide frequency spectrum. UWB signals experience minimal interference and exhibit high immunity to multipath effects, making them ideal for precise distance measurement. This enables UWB-equipped drones to establish relative distances between themselves. 
+%%% \par
+%%% This set of relative distances, after proper manipulation, represents a snapshot of the swarm configuration. To compute the local relative configuration, different algorithms can be chosen. 
+%%% Of these, the most straightforward are trilateration and Least-Squares  Minimization (LSM). The former can derive the position of nodes through geometry, while the latter is able to derive the position of drones by minimizing the difference between the measured distances and those obtained from position estimates.
+%%% Although both algorithms are valuable, they only use the distances between each node and the anchors, not taking advantage of the information contained in all the other nodes distances.
+%%% \par
+%%% An algorithm that tries to take full advantage of the UWB measurements is Multi-Dimensional Scaling (MDS): it is one of the dimensionality reduction technique which has been used extensively in the recent past for wireless networks localization. MDS is one of the dimensionality reduction methods that converts multidimensional data into a lower dimensional space while preserving the crucial information. There are other dimensionality reduction techniques available, including principal component analysis (PCA), factor analysis, and isomap, but MDS is the most well-liked among them due to its ease of use and broad range of applications.
+%%% \par
+%%% 
+%%% 
+%%% \subsection{Contribution}
+%%% 
+%%% This paper aims at comparing the performances of the two localization algorithms LSM and MDS in a ROS 2\footnote{Robot Operating System v2} project. Testing scripts that rely on these tools further highlight the strengths of MDS when compared to LSM: its robustness and precision even in cases of high noise and measurement errors.\par
+%%% The rest of the paper is organized in different sections. First, the related work will be analyzed in order to give a more detailed description of the field and of the currently used Local Positioning System (LPS) techniques.
+%%% Next, Section \ref{sec:theory_section} is entirely dedicated at explaining how the two algorithms mathematically work. In Section \ref{sec:methodology_section}, the whole structure of the project is described; this comprehends a description of how we run the two algorithms, the simulation suits developed, and the experiments conducted.
+%%% Finally results and conclusion collect the outcomes of the study and present a complete overview, followed by future work that can be.
+
+
+
+

@@ -1,0 +1,10 @@
+% ABSTRACT (200 words)
+% The problem can be solved with trilateration and minimization, but this uses part of the information we can gather using UWB sensor on each drone
+% We investigated how an algorithm using all the distances such as MDS behaves in solving the same problem, with considerations about different noises affecting the information we have (about the distances and about the position of the anchor).
+% What we wanted to check was whether using MDS allows to achieve better results, given the larger amount of information adopted by the algorithm.
+% The results show that MDS is better.
+
+\begin{abstract}\label{sec:abstract_section}
+This paper explores the localization of drones within various operational scenarios using the Multidimensional Scaling (MDS) algorithm and compares its performance with the conventional trilateration method. Drones' widespread applications, ranging from aerial photography to scientific research, necessitate precise localization even in challenging environments where GPS signals are unreliable. The MDS algorithm, capable of leveraging Ultra-Wideband (UWB) measurements, is investigated for its accuracy and robustness in comparison to trilateration. Through numerical and Software-in-the-loop simulations, MDS consistently outperforms trilateration across scenarios involving Gaussian-distributed noise in dynamics, measurements, and clock-time. Notably, this study pioneers swarm estimation via infrastructure-free measurements, wherein a designated anchor node collects data to drive the algorithm. Future research avenues are suggested, including extended-MDS integration and covariance estimation for enhanced Kalmann filter updates. This work contributes insights into optimal drone localization methods for diverse applications, highlighting MDS as a superior choice for precision and adaptability.
+
+\end{abstract}

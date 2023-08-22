@@ -1,0 +1,37 @@
+\section{Related Work}\label{sec:related_work}
+The problem of determining the position of the nodes in a Wireless Sensor Network (WSN) has been a subject of research since the inception of these networks \cite{doherty_convex_2001, corbalan_self-localization_2023}.
+Initially, the focus was on tracking sensor nodes within the network, as their data was inherently valuable only when coupled with accurate positional information. 
+Over time, the convergence of WSNs with the Internet of Things (IoT) and the spread adoption of unmanned vehicles have sustained the interest in this field with application in both 2D and 3D scenarios \cite{popescu_survey_2019}.
+
+% like Global Navigation Satellite System
+While GPS have conventionally been employed to address localization challenges, its utilization is limited by factors such as the unavailability of global measurements in certain environments and high costs in terms of size, price, and energy consumption \cite{doherty_convex_2001}. 
+Consequently, a trend followed in the literature to overcome these limitations has been the adoption of Local Positioning Systems (LPS).
+
+In the field of LPS, a notable approach is utilizing radio frequency (RF) signal propagation for accurate localization. Ultra-Wideband (UWB) technology, known for its robustness against multipath errors, obstacle penetration, high accuracy, and cost-effectiveness, has garnered increasing interest \cite{santoro_uwb-based_2023, niculescu_energy-efficient_2023, queralta_uwb-based_2020}. Common techniques for RF-based localization include Received Signal Strength (RSS), Time of Arrival (ToA), Time Difference of Arrival (TDoA), and Angle of Arrival (AoA) methods. Despite the differences between these methods, the ultimate goal is to provide a measure of the physical distance between sensors.
+
+Recent studies have explored UWB-based localization approaches, with a focus on static infrastructure utilizing fixed nodes (anchors) to locate other nodes (agents) within their range \cite{almansa_autocalibration_2020, patwari_locating_2005}. 
+In 3D cases, when the distance of an agent from 4 anchors is known, various techniques have been developed to estimate node locations based on distance measurements \cite[Chapters 23-27]{zekavat_handbook_2012}. Among the others, as already mentioned in Section~\ref{sec:introduction_section}, trilateration was implemented and tested through LSM, due to its simplicity and efficacy.
+Despite these properties, this work aims at demonstrating that the trilateration method does not fully exploit the available information when all the nodes are equipped with UWB sensors. The reason behind this claim is that, with this setting, all the relative distances between nodes are known, not just those between the agents and the anchors, suggesting the potential for improved performance.
+
+Among the algorithms that fully leverage all the relative measures, MDS and its derivatives emerge. 
+Rooted in psychology and psychometrics \cite{france_two-way_2011, young_discussion_1938, torgerson_multidimensional_1952}, the ability of MDS to map high-dimensional information to lower dimensions has found applications across diverse fields.
+
+When used for localization, MDS is usually referred to as metric MDS, to underline that the distances correspond to Euclidean distance between nodes \cite{saeed_state---art_2019}.
+In \cite{zhang-xin_chen_supplement_2009}, the authors demonstrate that the classical MDS algorithm is feasible for mobile localization and that the corresponding estimator does not rely on the initial estimate of the anchors. 
+In the same work, they point out that a common weakness of standard MDS methods is that the solutions do not consider the range noise. However, the exploration of weighted MDS approaches has addressed this limitation by incorporating measurement error covariance in the formulation and improving the position estimates  \cite{zhang-xin_chen_supplement_2009}. 
+This formulation, although more complex, demonstrated optimal performance according to the Cramèr-Rao lower bound limit (variance-optimality) \cite{zhang-xin_chen_supplement_2009}.
+
+In a comprehensive review of outdoor and indoor positioning systems, recent work has detailed various MDS variants, including centralized, semi-centralized, and distributed versions \cite{saeed_state---art_2019}. 
+In this research, the effort was focused on the centralized version of MDS, focusing on its application to drones. 
+A work similar to this is the infrastructure-free one proposed in   \cite{pourjabar_land_2023}, in which the swarm mapping occurs relative to few drones designated as moving "anchors" and not with respect to fixed anchors preinstalled in the mission environment.\par
+
+Inspired by this trend, the paper addresses the limitations of static infrastructure by proposing an innovative approach where a single drone serves as the UWB anchor for the entire swarm, as it will be better described in Section~\ref{sec:methodology_section}. 
+Essentially, after calculating a relative map by considering the distances between all the drones, ambiguities are resolved by considering the last four sets of measurements. 
+After this, the anchor is moved to a new point from which a new set of measurements and estimation are performed (see Section~\ref{sec:methodology_section}).
+
+To conclude, other recent approaches are those based on multi-lateration, where the idea behind trilateration is applied several times. 
+The advantage of this approach is that it is not necessary to know the distance between each pair of drones, as long as the known distances are enough to calculate the position of new drones from the known ones.
+However, MDS provides a more elegant and efficient formulation of the problem, simultaneously computing the position of all nodes \cite{corbalan_self-localization_2023}.
+
+
+
