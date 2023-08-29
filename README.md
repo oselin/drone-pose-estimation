@@ -1,4 +1,5 @@
 # Infrastructure-free Multidimensional Scaling (MDS) for drones swarm localization
+Project developed for the course Design Methods for Unmanned Vehicles [146040] of the master's degree in Autonomous System (EIT), University of Trento.
 
 The project aims to estimate the location of a fleet of drones via Multi-Dimensional Scaling (MDS) algorithm.
 
