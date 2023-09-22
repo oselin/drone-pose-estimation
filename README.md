@@ -19,9 +19,9 @@ The theoretical explanation and analysis can be found in [report](./report.pdf)
 </p>
 
 ## Structure of the software
-After a first initialization, the measurement procedure starts and the motion of the anchor follows. Since both the algorithms require at least 4 measurements, an initial loop verifies that 4 measurements are taken before launching the algorithm.
+After a first initialization, the measurement procedure starts and the motion of the anchor follows. Since both the algorithms require at least 4 measurements, an initial loop verifies that 4 measurements are taken before executing them.
 
-Once achieved that, both the algorithms are launched a measurement-motion cycle occurs, while the swarm of drones moves at constant velocity in space.
+Once achieved that, a measurement-motion cycle occurs, while the swarm of drones moves at constant velocity in space.
 
 The logical structure of the code can be observed in the following figure.
 <p align="center">
